@@ -204,13 +204,15 @@ jquery-datatmpl.js
 
 HTML DOM based template.
 
-    $(elem).dataTmjpl(context, options)
+    $(elem).dataTmpl(context, options)
 
 This tempalte mapped object values to HTML elements with 'data-tmpl' (as key of values).
 
 ex)
 
-    $(target).dataTmpl({
+    <script>
+    $(function(){
+    $("target").dataTmpl({
         str:'string',
         nest:{
             nested:'nested'
@@ -227,6 +229,8 @@ ex)
             'class':'someclass'
         }
     });
+    });
+    </script>
     
     <target>
         <span data-tmpl="str">str placeholder</span>
@@ -240,4 +244,4 @@ ex)
         <div data-tmpl="html">html placeholder</div>
     </target>
 
-[Example and Test](tests/jquery-datatmpl.html)
+

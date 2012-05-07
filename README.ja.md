@@ -117,8 +117,6 @@ ex)
     )
 
 
-[Example and Test](tests/jquery-urlize.html)
-
 
 jquery-form.js
 --------------
@@ -214,6 +212,8 @@ context.varnameの値は、data-tmpl="varname"の内容としてセットされ�
 
 ex)
 
+    <script>
+    $(function(){
     $(target).dataTmpl({
         str:'string',
         nest:{
@@ -231,6 +231,8 @@ ex)
             'class':'someclass'
         }
     });
+    });
+    </script>
     
     <target>
         <span data-tmpl="str">str placeholder</span>
