@@ -93,8 +93,6 @@ ex)
     $.resolve({a:{b:{c:1}}}, 'b.c') -> 1
     $.resolve({a:{b:[{c:2}]}}, 'b[0].c') -> 2
 
-[Example and Test](test/jquery-utils.html)
-
 
 jquery-urlize.js
 ----------------
@@ -157,7 +155,7 @@ ex)
 
 ### フォーム値をクリア
 
-    $(form).formClear()
+    $(form).formClear(clearHidden)
 
 hiddenを除くすべての入力要素の値を空白にします（リセットとは別）。
 
@@ -189,28 +187,27 @@ ex)
     });
     </script>
 
-expected server return is below:
+期待するサーバからのレスポンス：
 
-    success
+    成功時
         -> { success:true; }
-    valication error
+    入力エラー
         -> {
                 errors:{
                     '<field name>:'<reason>'
+                            :
                 }
            }
-    serverside system error
+    サーバ側システムエラー
         -> { systemerror:'<reason>'; }
 
-[Example and Test](tests/jquery-form.html)
-[Server side PHP mailform exmaple](tests/jquery-form-posttest.html)
 
 jquery-datatmpl.js
 ------------------
 
 HTML DOMベースのテンプレートユーティリティ。
 
-    $(elem).dataTmpl(context)
+    $(elem).dataTmpl(context, options)
 
 オブジェクトのプロパティ値を、対応するdata-tmpl属性をもつHTML要素に設定する。
 context.varnameの値は、data-tmpl="varname"の内容としてセットされる。
@@ -247,4 +244,3 @@ ex)
         <div data-tmpl="html">html placeholder</div>
     </target>
 
-[Example and Test](tests/jquery-datatmpl.html)

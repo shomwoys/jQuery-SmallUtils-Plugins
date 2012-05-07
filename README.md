@@ -1,7 +1,7 @@
 jQuery Plugins
 ==============
 
-This Repo provides small utils for jQuery.
+This repository provides small utils for jQuery.
 
 Better typeof(), make closure, Date utils, Number utils, URLize, form utils and HTML based template.
 
@@ -93,8 +93,6 @@ ex)
     $.resolve({a:{b:{c:1}}}, 'b.c') -> 1
     $.resolve({a:{b:[{c:2}]}}, 'b[0].c') -> 2
 
-[Example and Test](test/jquery-utils.html)
-
 
 jquery-urlize.js
 ----------------
@@ -103,7 +101,7 @@ jquery-urlize.js
 
     $.urlize(text)
 
-convert text to escaped html.
+Convert text to escaped html.
 'http://...','https://...','ftp://...' convert to to &lt;a> and linebreaks convert to &lt;br>
 
     $().urlize(text)
@@ -118,8 +116,6 @@ ex)
         + "and all linebreaks converted to <br>"
     )
 
-
-[Example and Test](tests/jquery-urlize.html)
 
 
 jquery-form.js
@@ -189,11 +185,11 @@ ex)
     });
     </script>
 
-expected server return is below:
+expected server response:
 
     success
         -> { success:true; }
-    valication error
+    validation error
         -> {
                 errors:{
                     '<field name>:'<reason>'
@@ -202,15 +198,13 @@ expected server return is below:
     serverside system error
         -> { systemerror:'<reason>'; }
 
-[Example and Test](tests/jquery-form.html)
-[Server side PHP mailform exmaple](tests/jquery-form-posttest.html)
 
 jquery-datatmpl.js
 ------------------
 
-HTML DOM base template.
+HTML DOM based template.
 
-    $(elem).dataTmjpl(context)
+    $(elem).dataTmjpl(context, options)
 
 This tempalte mapped object values to HTML elements with 'data-tmpl' (as key of values).
 
