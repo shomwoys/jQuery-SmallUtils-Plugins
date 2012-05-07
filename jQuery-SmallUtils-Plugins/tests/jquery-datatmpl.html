@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>jQuery Utils Plugin : Tests and examples</title>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.js"></script>
+<script src="http://ajax.googleapis.com/ajax/libs/swfobject/2.2/swfobject.js"></script>
+
+<!-- http://code.google.com/p/jquery-json/ -->
+<script src="js/jquery.json-2.3.js"></script>
+
+
+<script src="../jquery-utils.js"></script>
+<script src="../jquery-urlize.js"></script>
+<script src="../jquery-datatmpl.js"></script>
+<script>
+
+function msg(str, obj){
+	if (obj !== undefined) {
+		str += "\n---\n" + $.toJSON(obj, "\n", '  ');
+	}
+	return $('<div class="pre">').addClass('pre').text(str)
+		.appendTo($('#msg'));
+}
+function err(str, obj){
+	msg(str.obj).addClass('error');
+}
+
+$(function(){
+});
+
+</script>
+
+<style>
+
+div.pre {
+	white-space:pre;
+	border:4px solid #ccc;
+	overflow:auto;
+	width:auto;
+}
+div.error {
+	border-color:#f88;
+	background-color:#fee;
+}
+form {
+	border:4px solid #ccc;
+	background:#eee;
+	padding:10px;
+}
+
+.tmpl {
+	border:4px solid #ccc;
+	margin:10px;
+	padding: 5px;
+}
+
+.tmpl * {
+	border:1px solid black;
+	margin: 5px 20px;
+	padding:5px;
+}
+
+.tmpl .odd {
+	background:#fee;
+}
+.tmpl .even {
+	background:#efe;
+}
+
+</style>
+</head>
+<body>
+
+<div id="msg"></div>
+<div id="err"></div>
+
+<h3>Normal Context</h3>
+
+<script>
+$(function(){
+	
+	var JQ_IMG_URL = 'http://static.jquery.com/files/rocker/images/logo_jquery_215x53.gif';
+	
+	var context = {
+		str:'string',
+		num:1,
+		bool:false, // bool
+		html:{
+			"@as_html":true,
+			"@html":'as html : This is <b>html text</b>',
+			'@style':{
+				'text-decoration':'underline'
+			},
+			'class':'someclass'
+		},
+		urlize:{
+			'@as_html':true,
+			'@urlize':
+				"this text is urlized\n"
+				+ "URL text http://www.jquery.com/ is converted to link,\n"
+				+ "and linebreaks to <br>"
+		},
+		link1:'http://www.google.com',
+		link2:'http://www.google.com',
+		link3:{
+			"@as_html":true,
+			"@text":'OverWrite',
+			href:'http://www.google.com'
+		},
+		img1:JQ_IMG_URL,
+		img2:{
+			"@as_html":true,
+			src:JQ_IMG_URL,
+			width:100, height:25
+		},
+		date:new Date(),
+		obj:{
+			child1:'child1',
+			child2:'child2',
+			child3:{
+				cc1:1,
+				cc2:2
+			}
+		}
+	};
+	$('#target1').dataTmpl(context);
+	
+});
+</script>
+<div id="target1" class="tmpl">
+	<div> str:<span data-tmpl="str">str placeholder</span></div>
+	<div> num:<span data-tmpl="num">num placeholder</span></div>
+	<div data-tmpl="bool">bool true/false</div>
+	<div data-tmpl="html">html placeholder</div>
+	<div data-tmpl="urlize">urlize placeholder</div>
+	<div>rawlink:<a data-tmpl="link1"></a> link string:<a data-tmpl="link2">Link String2</a> link dynamic string<a data-tmpl="link3">Link String3 (override)</a></div>
+	<div>img url:<img data-tmpl="img1"> img with attr:<img data-tmpl="img2"></div>
+	<div data-tmpl="date"></div>
+	
+<!-- use swfobject.js for Flash
+	<div>object/embed:
+		<object width="400" height="224">
+			<param name="movie" data-tmpl="swf"></param>
+			<param name="allowscriptaccess" value="always"></param>
+			<param name="allowfullscreen" value="true"></param>
+			<embed data-tmpl="swf"
+				type="application/x-shockwave-flash"
+				allowfullscreen="true" width="400" height="224" wmode="transparent"></embed>
+		</object>
+	</div>
+	 -->
+	
+	<div data-tmpl="obj">obj placeholder
+		<div data-tmpl="obj.child1"></div>
+		<div data-tmpl="obj.child2"></div>
+		<div data-tmpl="obj.child3">
+			<div data-tmpl="obj.child3.cc1"></div>
+			<div data-tmpl="obj.child3.cc2"></div>
+		</div>
+	</div>
+	<div data-tmpl="emptyobj">obj placeholder
+		<div data-tmpl="emptyobj.child1">empty</div>
+	</div>
+</div>
+
+<h3>Switch</h3>
+
+<script>
+$(function(){
+	
+	var context = {
+		undef:undefined,
+		nullobj:null,
+		bool1:true,
+		bool2:false,
+		num1:1,
+		num2:0,
+		num3:1/0,
+		num4:-1/0,
+		num5:Number('A'),
+		str1:'not empty',
+		str2:" \t\n\r ",
+		arr1:[1,2,3],
+		arr2:[],
+		obj1:{d:'not empty'},
+		obj2:{}
+	};
+	$('#target1_1').dataTmpl(context);
+	
+})
+</script>
+
+<div id="target1_1" class="tmpl">
+
+	<div data-tmpl="?undef">undef is not undefined</div>
+	<div data-tmpl="!undef">undef is undefined - treated as false</div>
+	
+	<div data-tmpl="?nullobj">nullobj is not null</div>
+	<div data-tmpl="!nullobj">nullobj is null - treated as false</div>
+	
+	<div data-tmpl="?bool1">bool1 is true</div>
+	<div data-tmpl="!bool1">bool1 is false</div>
+	
+	<div data-tmpl="?bool2">bool2 is true</div>
+	<div data-tmpl="!bool2">bool2 is false</div>
+	
+	<div data-tmpl="?bool3">bool3 is true</div>
+	<div data-tmpl="!bool3">bool3 is false</div>
+	
+	<div data-tmpl="?num1">num1 != 0</div>
+	<div data-tmpl="!num1">num1 == 0 or NaN or Infinity</div>
+	
+	<div data-tmpl="?num2">num2 != 0</div>
+	<div data-tmpl="!num2">num2 == 0 or NaN or Infinity</div>
+	
+	<div data-tmpl="?num3">num3 != 0</div>
+	<div data-tmpl="!num3">num3 == 0 or NaN or Infinity</div>
+	
+	<div data-tmpl="?num4">num4 != 0</div>
+	<div data-tmpl="!num4">num4 == 0 or NaN or Infinity</div>
+	
+	<div data-tmpl="?num5">num5 != 0</div>
+	<div data-tmpl="!num5">num5 == 0 or NaN or Infinity</div>
+	
+	<div data-tmpl="?num6">num6 != 0</div>
+	<div data-tmpl="!num6">num6 == 0 or NaN or Infinity</div>
+	
+	<div data-tmpl="?str1">str1 contains non space chars</div>
+	<div data-tmpl="!str1">str1 is spaces</div>
+	
+	<div data-tmpl="?str2">str2 contains non space chars</div>
+	<div data-tmpl="!str2">str2 is spaces</div>
+	
+	<div data-tmpl="?str3">str3 contains non space chars</div>
+	<div data-tmpl="!str3">str3 is spaces</div>
+	
+	<div data-tmpl="?arr1">arr1 is not empty</div>
+	<div data-tmpl="!arr1">arr1 is empty</div>
+	
+	<div data-tmpl="?arr2">arr2 is not empty</div>
+	<div data-tmpl="!arr2">arr2 is empty</div>
+	
+	<div data-tmpl="?arr3">arr3 is not empty</div>
+	<div data-tmpl="!arr3">arr3 is empty</div>
+	
+	<div data-tmpl="?obj1">obj1 is not empty</div>
+	<div data-tmpl="!obj1">obj1 is empty</div>
+	
+	<div data-tmpl="?obj2">obj2 is not empty</div>
+	<div data-tmpl="!obj2">obj2 is empty</div>
+	
+	<div data-tmpl="?obj3">obj3 is not empty</div>
+	<div data-tmpl="!obj3">obj3 is empty</div>
+	
+</div>
+
+<h3>Array</h3>
+
+<script>
+
+$(function(){
+	
+	var context = {
+		data:'data',
+		arr1:[{data:'a[0].d'},{data:'a[1].d'},{data:'a[2].d'}],
+		arr2:[
+		  {
+			data:'a2[0].d',
+			arr3:[
+			  { data:'a2[0].a3[0].d' },
+			  { data:'a2[1].a3[1].d' },
+			  { data:'a2[2].a3[2].d' },
+			]
+		  },
+		  {
+			data:'a2[1].d',
+			arr3:[
+			  { data:'a2[1].a3[0].d' },
+			  { data:'a2[1].a3[1].d' },
+			]
+		  },
+		],
+		arr3:[]
+	};
+	$('#target2').dataTmpl(context);
+	
+})
+</script>
+
+<div id="target2" class="tmpl">
+	<span data-tmpl="data">data placeholder</span>
+	<div>
+		<span data-tmpl="arr1"><span data-tmpl="arr1:data">bbb</span></span>
+	</div>
+	<div>arr2
+		<div data-tmpl="arr2">
+			<div data-tmpl="arr2:data">ccc</div>
+			<div data-tmpl="arr2:arr3">
+				<div data-tmpl="arr2:arr3:data">ddd</div>
+			</div>
+		</div>
+	</div>
+	<div>arr3
+		<div data-tmpl="arr3">
+			<span data-tmpl="arr3:data"></span>
+		</div>
+		<div data-tmpl="!arr3">arr3 is empty</div>
+	</div>
+	<div data-tmpl="?arr4">arr4
+		<div data-tmpl="arr4">
+			<span data-tmpl="arr4:data"></span>
+		</div>
+		<div data-tmpl="!arr4">arr4 is empty</div>
+	</div>
+</div>
+
+<h3>Options - dateformat,filters</h3>
+
+<script>
+$(function(){
+	
+	var context = {
+		arr1:[
+			  { date:new Date(0) },
+			  { date:new Date(10000) },
+			  { date:new Date() }
+			],
+		arr2:[
+			  { num:1 },
+			  { num:2 },
+			  { num:3 },
+			  { num:4 }
+			],
+		arr3:[
+			  { data:'data1' },
+			  { data:'data2' },
+			  { data:'data3' },
+			  { data:'data4' }
+			],
+		swf:'http://www.macromediahelp.com/flash/simple_flash_and_xml_sample/xml_sample.swf'
+
+	};
+	$('#target3').dataTmpl(context, {
+		
+		dateformat:'\'yy M/d at H:mm TT',
+		
+		filters:{
+			'arr2:num':function(v){
+				return (v % 2) ? (v+' is even.') : (v+' is odd.');
+			},
+			'arr3:data':function(v, count, context){
+				return {
+					'@as_html':true,
+					'class':((count % 2) ? 'odd':'even'),
+					'@text':count + ':'+v
+				};
+			},
+			'swf':function(v){
+				var id = 'swfobj_'+new Date().getTime();
+				$.doLaterWith([id,v],null,function(id,url){
+					swfobject.embedSWF(url, id, "220", "90","9.0.0");
+				});
+				return {
+					'@as_html':true,
+					'id':id,
+					'@html':'Loading SWF...'
+				};
+			}
+		}
+	});
+	
+})
+</script>
+
+<div id="target3" class="tmpl">
+	<div data-tmpl="arr1">
+		<div data-tmpl="arr1:date"></div>
+	</div>
+	<div data-tmpl="arr2">
+		<div data-tmpl="arr2:num"></div>
+	</div>
+	<div data-tmpl="arr3">
+		<div data-tmpl="arr3:data"></div>
+	</div>
+	<div data-tmpl="swf"></div>
+</div>
+
+<h3>Partial Update</h3>
+<script>
+var updatableTmpl;
+$(function(){
+	var context ={
+		'label':'permanent label',
+		'data':[
+		  { label:'label1/1', content:'content1' },
+		  { label:'label2/1', content:'content2' },
+		  { label:'label3/1', content:'content3' },
+		  { label:'label4/1', content:'content4' },
+		  { label:'label5/1', content:'content5' },
+		  { label:'label6/1', content:'content6' },
+		],
+		'page':1,
+		'has_prev':false,
+		'has_next':true
+	}
+	updatableTmpl = new $.DataTmpl($('#target4'));
+	updatableTmpl.render(context);
+});
+var partial_page=1;
+function make_partial(p){
+	var context = {
+		'data':[
+		  { label:'label1/'+p, content:'content1' },
+		  { label:'label2/'+p, content:'content2' },
+		  { label:'label3/'+p, content:'content3' },
+		  { label:'label4/'+p, content:'content4' },
+		  { label:'label5/'+p, content:'content5' },
+		  { label:'label6/'+p, content:'content6' },
+		],
+		'page':p,
+		'has_prev':(p>1),
+		'has_next':(p<3)
+	};
+	if (p==3){
+		context.data.pop();
+		context.data.pop();
+	}
+	return context;
+}
+function update_partial(p){
+	var context = make_partial(p);
+	updatableTmpl.update(context);
+}
+function partial_prev(){
+	update_partial(--partial_page);
+}
+function partial_next(){
+	update_partial(++partial_page);
+}
+</script>
+<div id="target4" class="tmpl">
+	<div data-tmpl="label"></div>
+		
+	<div data-tmpl="data">
+		<span data-tmpl="data:label"></span>
+		<span data-tmpl="data:content"></span>
+	</div>
+	<div class="paging">
+		<span data-tmpl="has_prev">
+			<a onclick='partial_prev();return false;' href="#">&lt;Prev</a>
+		</span>
+		<span data-tmpl="!has_prev" style="color:#ccc"><span>&lt;Prev</span></span>
+		p.<span data-tmpl="page"></span>
+		<span data-tmpl="has_next">
+			<a onclick='partial_next();return false;' href="#">Next&gt;</a>
+		</span>
+		<span data-tmpl="!has_next" style="color:#ccc"><span>Next&gt;</span></span>
+	</div>
+	<div data-tmpl="!data">
+		No Data
+	</div>
+</div>
+
+</body>
+</html>
