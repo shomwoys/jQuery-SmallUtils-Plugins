@@ -64,24 +64,28 @@
  * 
  * HTML:
  * <form method="post" action="path/to/json_api/to/post">
- *   <span class="error error_@all"></span>
- *   <input name="p1"><span class="error error_p1"></span>
- *   <input name="p2"><span class="error error_p2"></span>
+ *   <span class="error error_@all">error placeholder for all</span>
+ *   <input name="p1"><span class="error error_p1">error placeholder for p1</span>
+ *   <input name="p2"><span class="error error_p2">error placeholder for p2</span>
  *   <input type="submit">
  * </form>
  * 
  * script:
  * $(function(){
- *   $.formPost($("form")).then(function(){
- *   	alert('success');
- *   	location.href="success.html"
- *   }).fail(function(res){
- *   	if (res.ajaxerror){ alert('connection error:'+res.ajaxerror.statusText) }
- *   	if (res.systemerror) { alert('serverside error:'+res.systemerror); }
+ *   $("form").submit(function(){
+ *     $(this).formPost()
+ *     .then(function(){
+ *       alert('success');
+ *       location.href="success.html"
+ *     }).fail(function(res){
+ *       if (res.ajaxerror){ alert('connection error:'+res.ajaxerror.statusText) }
+ *       if (res.systemerror) { alert('serverside error:'+res.systemerror); }
+ *     });
+ *     return false;
  *   });
  * });
  * 
- * expected serverside json return:
+ * expected server response:
  * { success:true; }
  * or
  * { errors:{ '<field name>':'<error message>', ... }

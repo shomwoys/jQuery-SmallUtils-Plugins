@@ -60,12 +60,13 @@
  * Switches)
  * data-tmpl="!context.VARNAME" 
  *   enabled when context.VARNAME == false,[],{},0 or Inf or NaN,empty string(space chars only),null,undefined
- * data-tmpl="?context.VARNAME" enabled 
- *   when context.VARNAME == true,[not empty],{not empty},not 0
+ * data-tmpl="?context.VARNAME" 
+ *   enabled when context.VARNAME == true,[not empty],{not empty},not 0
  * 
  * Options)
- *   target: "target" attribute for <a>
+ *   target: "target" attribute of <a>
  *   datetimeformat: "datetime format - $.datetimeformat at jquery-utils.js" for Date
+ *   number_comma: format Number to comma separated (default true).
  *   filters:{} filter functions hash.
  *     'context.VARNAME':function(var, array_loop_counter1, context){ return [new value]; }
  * 
@@ -126,12 +127,12 @@
 	
 	var default_options = {
 		dateformat:'yyyy/MM/dd HH:mm:ss',
+		number_comma:true,
 		urlize:{
 			linebreaksbr:true,
 			trunc:[25, 20, false],
 			target:'_blank'
 		},
-		number_comma:true,
 		filters:{}
 	};
 	
@@ -144,7 +145,7 @@
 	DataTmpl.prototype.init = function(){
 		
 		var elems = {
-			targets:{}, // { <kn>:<jquery object>, }
+			targets:{},
 			empties:{},
 			toggles:{}
 		};
@@ -185,19 +186,12 @@
 		},
 		num_comma3:function(){
 			return function(v){
+				return $.number.comma3(v);
 			};
 		},
-		num_km:function(){
-			return function(v){
-				if (isInfinit(v) || isNaN(v)) { return v;}
-				v = (new String(v)).match(/^([-+]?)(\d+)(\.\d+)$/);
-				return v[1]+v[2].replace(/^(?=(?:\d{3}+(?!\d))/g, ',')+v[3];
-			};
-		},
-		num_round:function(base){
+		num_round:function(pos,pad0){
 			return function(v) {
-				if (base === undefined) base = 1;
-				return Math.round(v * base)/base;
+				return $.number.round(pos,pad0);
 			};
 		}
 	};
@@ -216,6 +210,9 @@
 			_v = { '@as_html':true, '@text':$.dateformat(v, this.options.dateformat) };
 			break;
 		case 'number':
+			if (this.options.number_comma) {
+				v = $.numformat.comma3(v);
+			}
 		case 'string':
 			switch (tag) {
 				case 'a':

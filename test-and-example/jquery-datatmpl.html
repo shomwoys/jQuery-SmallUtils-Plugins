@@ -316,22 +316,22 @@ $(function(){
 	</div>
 </div>
 
-<h3>Options - dateformat,filters</h3>
+<h3>Options - dateformat,number_comma,filters</h3>
 
 <script>
 $(function(){
 	
 	var context = {
 		arr1:[
-			  { date:new Date(0) },
-			  { date:new Date(10000) },
-			  { date:new Date() }
+			  { date:new Date(0), num:12 },
+			  { date:new Date(10000), num:1234 },
+			  { date:new Date(), num:1234.5678 }
 			],
 		arr2:[
 			  { num:1 },
-			  { num:2 },
-			  { num:3 },
-			  { num:4 }
+			  { num:12 },
+			  { num:123 },
+			  { num:1234 }
 			],
 		arr3:[
 			  { data:'data1' },
@@ -345,6 +345,8 @@ $(function(){
 	$('#target3').dataTmpl(context, {
 		
 		dateformat:'\'yy M/d at H:mm TT',
+		
+		num_comma3:true,
 		
 		filters:{
 			'arr2:num':function(v){
@@ -376,7 +378,9 @@ $(function(){
 
 <div id="target3" class="tmpl">
 	<div data-tmpl="arr1">
-		<div data-tmpl="arr1:date"></div>
+		<span data-tmpl="arr1:date"></span>
+		/
+		<span data-tmpl="arr1:num"></span>
 	</div>
 	<div data-tmpl="arr2">
 		<div data-tmpl="arr2:num"></div>
