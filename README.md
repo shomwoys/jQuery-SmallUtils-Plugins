@@ -1,10 +1,15 @@
 jQuery Plugins
 ==============
 
+This Repo provides small utils for jQuery.
+
+Better typeof(), make closure, Date utils, Number utils, URLize, form utils and HTML based template.
+
+
 jquery-utils.js
 --------------
 
-some small utils for jQuery
+Small utils.
 
 ### better typeof
 
@@ -204,6 +209,8 @@ jquery-datatmpl.js
 ------------------
 
 HTML DOM base template.
+
+    $(elem).dataTmjpl(context)
 
 This tempalte mapped object values to HTML elements with 'data-tmpl' (as key of values).
 
