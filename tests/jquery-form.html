@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>jQuery Utils Plugin : Tests and examples</title>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.js"></script>
+
+<!-- http://code.google.com/p/jquery-json/ -->
+<script src="js/jquery.json-2.3.js"></script>
+
+
+<script src="../jquery-form.js"></script>
+<script>
+
+function msg(str, obj){
+	if (obj !== undefined) {
+		str += "\n---\n" + $.toJSON(obj, "\n", '  ');
+	}
+	return $('<div class="pre">').addClass('pre').text(str)
+		.appendTo($('#msg'));
+}
+function err(str, obj){
+	msg(str.obj).addClass('error');
+}
+
+$(function(){
+	
+	
+	$("form#src").submit(function(){return false;});
+	$("form#src").clone().attr('id','dst').formClear()
+		.appendTo('#target');
+	
+	
+	// formPost
+	
+	$("form#posttest").submit(function(){
+		$(this).formPost($("form#posttest"))
+		.done(function(res){
+			alert('post success.');
+			$("form#posttest").formClear();
+		}).fail(function(res){
+			if (res.systemerror) {
+				// response is { 'systemerror':'some system exception'  }
+				alert(res.systemerror);
+			}
+			if (res.ajaxerror) {
+				// $.ajax error - XMLHttpRequest
+				var xhr = res.ajaxerror;
+				alert(xhr.status + ":"+xhr.statusText+"\n"+(xhr.respnoseText||''));
+			}
+		});
+		return false;
+	});
+});
+
+</script>
+
+<style>
+
+div.pre {
+	white-space:pre;
+	border:4px solid #ccc;
+	overflow:auto;
+	width:auto;
+}
+div.error {
+	border-color:#f88;
+	background-color:#fee;
+}
+form {
+	border:4px solid #ccc;
+	background:#eee;
+	padding:10px;
+}
+
+</style>
+</head>
+<body>
+
+<div id="msg"></div>
+<div id="err"></div>
+
+<form id="src">
+hidden:<input type="hidden" name="hidden" value="hidden input"><br>
+text:<input type="text" name="text" value="text input"><br>
+passwd:<input type="password" name="password" value="password input"><br>
+
+checkboxes:
+<input type="checkbox" name="checkbox" value="checkbox1">
+<input type="checkbox" name="checkbox" value="checkbox2" checked>
+<input type="checkbox" name="checkbox" value="checkbox3" checked>
+<input type="checkbox" name="checkbox" value="checkbox4">
+<input type="checkbox" name="checkbox" value="checkbox5">
+<br>
+
+radios:
+<input type="radio" name="radio" value="radio1">
+<input type="radio" name="radio" value="radio2">
+<input type="radio" name="radio" value="radio3" checked>
+<input type="radio" name="radio" value="radio4">
+<input type="radio" name="radio" value="radio5">
+<br>
+
+textarea:<br>
+<textarea name="textarea">textarea strings
+textarea strings</textarea>
+<br>
+
+select:
+<select name="select">
+<option value="">---</option>
+<option value="opt1">opt1</option>
+<option value="opt2">opt2</option>
+<option value="opt3" selected>opt3</option>
+<option value="opt4">opt4</option>
+<option value="opt5">opt5</option>
+</select>
+<br>
+
+select multiple:
+<select name="select-multiple" multiple>
+<option value="sm-opt1">sm-opt1</option>
+<option value="sm-opt2">sm-opt2</option>
+<option value="sm-opt3" selected>sm-opt3</option>
+<option value="sm-opt4" selected>sm-opt4</option>
+<option value="sm-opt5">sm-opt5</option>
+</select>
+<br>
+
+buttons:<br>
+<input type="button" name="button" value="show" onclick="msg($(this.form).attr('id'), $(this.form).formGet())">
+<input type="button" name="clear" value="clear" onclick="$(this.form).formClear()">
+<br>
+<input type="reset" name="reset" value="reset">
+<input type="submit" name="submit" value="submit">
+
+</form>
+<input type="button" onclick="$('form#dst').formSet($('form#src').formGet());" value="copy">
+
+<div id="target"></div>
+
+<hr>
+
+<style>
+#posttest .error { background:#fcc; color:#400; font-weight:bold; }
+#posttest.posting { background:#ccc; }
+</style>
+<form id="posttest" method="post" action="jquery-form-posttest.php">
+	<label>not required</label><input name="text">
+	<span class="error error_text"></span>
+	<br>
+	<label>required URL</label><input name="url">
+	<span class="error error_url"></span>
+	<br>
+	<label>required email</label><input name="email">
+	<span class="error error_email"></span>
+	<br>
+	<label>required email confirm</label><input name="email2">
+	<span class="error error_email2"></span>
+	<br>
+	radios
+	<label><input type="radio" name="radio" value="rad1">radio1</label>
+	<label><input type="radio" name="radio" value="rad2">radio2</label>
+	<label><input type="radio" name="radio" value="rad3">radio3</label>
+	<label><input type="radio" name="radio" value="rad4">radio4</label>
+	<span class="error error_radio"></span>
+	<br>
+	checboxes (not required)
+	<label><input type="checkbox" name="checkbox" value="cb1">checkbox1</label>
+	<label><input type="checkbox" name="checkbox" value="cb2">checkbox2</label>
+	<label><input type="checkbox" name="checkbox" value="cb3">checkbox3</label>
+	<label><input type="checkbox" name="checkbox" value="cb4">checkbox4</label>
+	<span class="error error_checkbox"></span>
+	<br>
+	checboxes (required 2+ checked)
+	<label><input type="checkbox" name="checkbox2" value="cb1">checkbox1</label>
+	<label><input type="checkbox" name="checkbox2" value="cb2">checkbox2</label>
+	<label><input type="checkbox" name="checkbox2" value="cb3">checkbox3</label>
+	<label><input type="checkbox" name="checkbox2" value="cb4">checkbox4</label>
+	<span class="error error_checkbox2"></span>
+	<br>
+	<input type="submit">
+</form>
+
+
+</body>
+</html>

@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>jQuery Utils Plugin : Tests and examples</title>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.js"></script>
+
+<!-- http://code.google.com/p/jquery-json/ -->
+<script src="js/jquery.json-2.3.js"></script>
+
+
+<script src="../jquery-utils.js"></script>
+<script>
+
+function msg(str, obj){
+	if (obj !== undefined) {
+		str += "\n---\n" + $.toJSON(obj, "\n", '  ');
+	}
+	return $('<div class="pre">').addClass('pre').text(str)
+		.appendTo($('#msg'));
+}
+function err(str, obj){
+	msg(str.obj).addClass('error');
+}
+
+$(function(){
+	for (var k in TEST) {
+		msg('----------- TEST:'+k+' ---------------');
+		TEST[k]();
+	}
+});
+
+var TEST = {
+	/*
+	'toJSON': function(){
+		msg($.toJSON({a:1,b:2,c:3}));
+		msg($.toJSON([1,2,3,4,5]));
+		msg($.toJSON({arr:[1,2,3,'a','b','c']}));
+		msg($.toJSON({'a':[1,2,3],'b':{a:1,b:2,c:{a:1,b:2,c:3}}, 'c':3}));
+		msg($.toJSON({'date':new Date()}));
+	},
+	*/
+		
+	'typeOf': function(){
+		var vars = {
+			'num':1,
+			'str':'str',
+			'bool':true,
+			'func':function(){},
+			'arr':[1,2,3],
+			'obj':{'a':1},
+			'objNum':new Number(0),
+			'objStr':new String('obStr'),
+			'objBool':new Boolean(false),
+			'objArray':new Array(1,2,3),
+			'objObj':new Object({'b':'str'}),
+			'objFunc':new Function(),
+			'objDate':new Date(),
+			'objRegExp':new RegExp(),
+			'null':null,
+			'undefined':undefined
+		};
+		var typeofs = [];
+		for (var k in vars){
+			typeofs.push(k + ':' + $.typeOf(vars[k]));
+		}
+		msg(typeofs.join("\n"));
+	},
+	
+	'closure': function(){
+		var bound_function = $.closure(['ba1','ba2'], null, function(_bind_arg1, _bind_arg2, arg1, arg2, arg3){
+			msg([
+			     '_bind_arg1:' + _bind_arg1,
+			     '_bind_arg2:' + _bind_arg2,
+			     'arg1:' + arg1,
+			     'arg2:' + arg2,
+			     'arg3:' + arg3
+			].join('\n'));
+		});
+		bound_function('a1', 'a2', 'a3');
+	},
+	
+	'doLaterWith': function(){
+		msg('start');
+		var start = new Date().getTime();
+		function delayFunc1(a){
+			return "doLaterWith:"+a+" - delayed " + (new Date().getTime() - start)+'ms';
+		}
+		$.doLaterWith(['0ms'],null,delayFunc1).then(function(res){msg(res);});
+		$.doLaterWith(['5000ms'],null,delayFunc1,5000).then(function(res){msg(res);});
+	},
+	
+	'doLater': function(){
+		msg('start');
+		var start = new Date().getTime();
+		function delayFunc2(){
+			return "doLater - delayed " + (new Date().getTime() - start)+'ms';
+		}
+		$.doLater(delayFunc2).then(function(res){msg(res);});
+		$.doLater(delayFunc2,5000).then(function(res){msg(res);});
+	},
+	
+	'parseISO8601' : function(){
+		var strs = [
+		    '1970-01-01T00:00:00.000Z',
+		    '1970-01-01T00:00:00.000+0000',
+		    '1970-01-01T00:00:00.000+1200',
+		    '2000-12-31T12:12:12Z',
+		];
+		for (var k in strs){
+			var v = strs[k];
+			var d = $.parseISO8601(v);
+			msg(v+' -> '+d.toGMTString()+'('+d.toLocaleString()+')');
+		}
+	},
+	
+	'numformat' : function(){
+		var nums = [1,12,123,1234,12345,123456,123456789, 1234.1, 1234.123, 1234.1234];
+		var str = [ '1','12','123','1,234', '12,345', '123,456', '123,456,789', '1,234.1', '1,234.123', '1,234.1234' ];
+		for (var i=0,l=nums.length;i<l;i++){
+			var v = $.numformat.comma3(nums[i]);
+			msg('comma3(x):'+ (str[i] == v) + ':'+v+'/'+str[i]);
+			var v = $.numformat.comma3(-nums[i]);
+			msg('comma3(x):'+ (('-'+str[i]) == v) + ':'+v+'/-'+str[i]);
+		}
+		var nums = [ 1, 1.4999, 1.5, 14.99, 15.00, 0.1499 ];
+		var str = [ '1', '1', '2', '15', '15', '0' ];
+		for (var i=0,l=nums.length;i<l;i++){
+			var v = $.numformat.round(nums[i]);
+			msg('round('+nums[i]+'):'+ (str[i] == v) + ':'+v+'/'+str[i]);
+		}
+		var nums = [ 1, 1.4, 1.449, 1.45 ];
+		var str = [ '1.0', '1.4', '1.4', '1.5'];
+		for (var i=0,l=nums.length;i<l;i++){
+			var v = $.numformat.round(nums[i],-1);
+			msg('round('+nums[i]+',-1):'+ (str[i] == v) + ':'+v+'/'+str[i]);
+		}
+		var nums = [ 0.1, 0.14, 0.14449, 0.14451 ];
+		var str = [ '0.100', '0.140', '0.144', '0.145'];
+		for (var i=0,l=nums.length;i<l;i++){
+			var v = $.numformat.round(nums[i],-3);
+			msg('round('+nums[i]+',-3):'+ (str[i] == v) + ':'+v+'/'+str[i]);
+		}
+		var nums = [ 10, 14, 15, 144, 145 ];
+		var str = [ '10', '10', '20', '140', '150'];
+		for (var i=0,l=nums.length;i<l;i++){
+			var v = $.numformat.round(nums[i],1);
+			msg('round('+nums[i]+',1):'+ (str[i] == v) + ':'+v+'/'+str[i]);
+		}
+		var nums = [ 10, 512, 1024, 4096, 1023 ];
+		var str = [ '0.01', '0.5', '1', '4', '1'];
+		for (var i=0,l=nums.length;i<l;i++){
+			var v = $.numformat.kilo(nums[i]);
+			msg('kilo('+nums[i]+'):'+ (str[i] == v) + ':'+v+'/'+str[i]);
+		}
+		
+	},
+	
+	'resolve': function(){
+		var a = {
+				var1:'a.var1',
+				arr1:['a.arr1[0]','a.arr1[1]','a.arr1[2]'],
+				func1:function(){return 'a.func1()';},
+				var2:{
+					var1:'a.var2.var1',
+					arr1:['a.var2.arr1[0]','a.var2.arr1[1]','a.var2.arr1[2]'],
+					func1:function(){return 'a.var2.func1()';},
+					var3:{
+						var1:'a.var2.var3.var1',
+						arr1:['a.var2.var3.arr1[0]','a.var2.var3.arr1[1]','a.var2.var3.arr1[2]'],
+						func1:function(){return 'a.var2.var3.func1()';},
+					}
+				},
+				func2:function(){
+					return {
+						var1:'a.func2().var1',
+						arr1:['a.func2().arr1[0]','a.func2().arr1[1]','a.func2().arr1[2]'],
+						func1:function(){ return 'a.func2().func1()'; }
+					}
+				},
+				arr2:[
+					{
+						var1:'a.arr2[0].var1',
+						arr1:['a.arr2[0].arr1[0]','a.arr2[0].arr1[1]','a.arr2[0].arr1[2]'],
+						func1:function(){return 'a.arr2[0].func1()';},
+					},
+					{
+						var1:'a.arr2[1].var1',
+						arr1:['a.arr2[1].arr1[0]','a.arr2[1].arr1[1]','a.arr2[1].arr1[2]'],
+						func1:function(){return 'a.arr2[1].func1()';},
+					}
+				]
+			}
+			
+			var test = [
+				'var1','func1()','arr1[0]','arr1[1]','arr1[2]',
+				'var2.var1', 'var2.func1()', 'var2.arr1[0]', 'var2.arr1[1]','var2.arr1[2]',
+				'var2.var3.var1', 'var2.var3.func1()', 'var2.var3.arr1[0]', 'var2.var3.arr1[1]','var2.var3.arr1[2]',
+				'func2().var1', 'func2().func1()', 'func2().arr1[0]', 'func2().arr1[2]', 'func2().arr1[2]', 
+				'arr2[0].var1', 'arr2[0].func1()', 'arr2[0].arr1[0]', 'arr2[0].arr1[1]', 'arr2[0].arr1[2]', 
+				'arr2[1].var1', 'arr2[1].func1()', 'arr2[1].arr1[0]', 'arr2[1].arr1[1]', 'arr2[1].arr1[2]'
+			];
+			
+			var str;
+			while( str = test.shift() ){
+				var res = $.resolve(a, str);
+				msg(('a.'+str == res)+ ' : a.' + str + ' / ' + res);
+			}
+		
+	}
+	
+}
+
+
+</script>
+
+<style>
+
+div.pre {
+	white-space:pre;
+	border:4px solid #ccc;
+	overflow:auto;
+	width:auto;
+}
+div.error {
+	border-color:#f88;
+	background-color:#fee;
+}
+
+</style>
+</head>
+<body>
+
+<div id="msg"></div>
+<div id="err"></div>
+
+</body>
+</html>
