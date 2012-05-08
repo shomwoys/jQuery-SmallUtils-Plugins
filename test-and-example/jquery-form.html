@@ -35,23 +35,26 @@ $(function(){
 	// formPost
 	
 	$("form#posttest").submit(function(){
-		$(this).formPost($("form#posttest"))
-		.done(function(res){
-			alert('post success.');
-			$("form#posttest").formClear();
-		}).fail(function(res){
-			if (res.systemerror) {
-				// response is { 'systemerror':'some system exception'  }
-				alert(res.systemerror);
-			}
-			if (res.ajaxerror) {
-				// $.ajax error - XMLHttpRequest
-				var xhr = res.ajaxerror;
-				alert(xhr.status + ":"+xhr.statusText+"\n"+(xhr.respnoseText||''));
-			}
-		});
+		try {
+			$(this).formPost().done(function(res){
+				alert('post success.');
+				$("form#posttest").formClear();
+			}).fail(function(res){
+				if (res.systemerror) {
+					// response is { 'systemerror':'some system exception'  }
+					alert(res.systemerror);
+				}
+				if (res.ajaxerror) {
+					// $.ajax error - XMLHttpRequest
+					var xhr = res.ajaxerror;
+					alert(xhr.status + ":"+xhr.statusText+"\n"+(xhr.respnoseText||''));
+				}
+			});
+		} catch (ex) {
+			console && console.log(ex);
+		}
 		return false;
-	});
+	}).find('.error_msg').css('display','none');
 });
 
 </script>
@@ -64,15 +67,20 @@ div.pre {
 	overflow:auto;
 	width:auto;
 }
+
 div.error {
 	border-color:#f88;
 	background-color:#fee;
 }
+
 form {
 	border:4px solid #ccc;
 	background:#eee;
 	padding:10px;
 }
+
+form.posting { cursor:wait; background:#ccc; color:#888; }
+form span.error_msg { background-color:#fee; color:#822; padding:0.5em; margin:0.5em; }
 
 </style>
 </head>
@@ -148,37 +156,37 @@ buttons:<br>
 </style>
 <form id="posttest" method="post" action="jquery-form-posttest.php">
 	<label>not required</label><input name="text">
-	<span class="error error_text"></span>
+		<span class="error_msg" data-for="text"></span>
 	<br>
 	<label>required URL</label><input name="url">
-	<span class="error error_url"></span>
+		<span class="error_msg" data-for="url"></span>
 	<br>
 	<label>required email</label><input name="email">
-	<span class="error error_email"></span>
+		<span class="error_msg" data-for="email"></span>
 	<br>
 	<label>required email confirm</label><input name="email2">
-	<span class="error error_email2"></span>
+		<span class="error_msg" data-for="email2"></span>
 	<br>
 	radios
 	<label><input type="radio" name="radio" value="rad1">radio1</label>
 	<label><input type="radio" name="radio" value="rad2">radio2</label>
 	<label><input type="radio" name="radio" value="rad3">radio3</label>
 	<label><input type="radio" name="radio" value="rad4">radio4</label>
-	<span class="error error_radio"></span>
+		<span class="error_msg" data-for="radio"></span>
 	<br>
 	checboxes (not required)
 	<label><input type="checkbox" name="checkbox" value="cb1">checkbox1</label>
 	<label><input type="checkbox" name="checkbox" value="cb2">checkbox2</label>
 	<label><input type="checkbox" name="checkbox" value="cb3">checkbox3</label>
 	<label><input type="checkbox" name="checkbox" value="cb4">checkbox4</label>
-	<span class="error error_checkbox"></span>
+		<span class="error_msg" data-for="checkbox"></span>
 	<br>
 	checboxes (required 2+ checked)
 	<label><input type="checkbox" name="checkbox2" value="cb1">checkbox1</label>
 	<label><input type="checkbox" name="checkbox2" value="cb2">checkbox2</label>
 	<label><input type="checkbox" name="checkbox2" value="cb3">checkbox3</label>
 	<label><input type="checkbox" name="checkbox2" value="cb4">checkbox4</label>
-	<span class="error error_checkbox2"></span>
+		<span class="error_msg" data-for="checkbox2"></span>
 	<br>
 	<input type="submit">
 </form>

@@ -206,25 +206,32 @@
 			return $(this);
 		},
 		
-		formPost : function(elm, url) {
+		formPost : function(opts) {
 			/**
 			 * POST form by ajax ($.Deferred).
 			 * 
 			 * When form is submitted:
-			 *   1. add 'posting' class to <form>, disabled inputs, clear '.error' texts and set display:none;
+			 *   1. preprocess:
+			 *       i)   add 'posting' class to <form>
+			 *       ii)  disabled :inputs
+			 *       iii) clear '.error_msg' texts and set display:none;
 			 *   2. POST values to <url>
-			 *   3. process res.
-			 *        res.errors
-			 *          - set error texts to '.error_<param_name>', reject(res)
-			 *        res.success 
-			 *          - resolve(res)
-			 *   4. wait 1500ms ( to avoid muitiple post ) and enable inputs and remove 'posting' class
+			 *   3. process response.
+			 *        res.errors is exists
+			 *          i)  set error texts to data-for="<param_name>"
+			 *          ii) reject(res)
+			 *        res.success == true
+			 *          resolve(res)
+			 *   4. postproces
+			 *       i)   wait 1500ms ( to avoid muitiple post )
+			 *       ii)  enable :inputs
+			 *       iii) remove 'posting' class from <form>
 			 * 
 			 * usage)
 			 * 
 			 * <script>
 			 * $(function(){
-			 *   $(form)submit(function(){
+			 *   $(form).submit(function(){
 			 *     $(this).formPost()
 			 *     .done(function(res){
 			 *        location.href="success.html";
@@ -233,30 +240,36 @@
 			 *        if (res.ajaxerror) { alert(ajaxerror.responseText); }
 			 *     });
 			 *     return false;
-			 *   });
+			 *   }).find('.error_msg[data-for]').css('display','none');
 			 * </script>
 			 * <form id="testform" method="post" action="/path/to/post.json">
-			 *    <span class="error error_@all"></span>
+			 *    <span class="error_msg" data-for="@all"></span>
 			 *
 			 *    <input type="text" name="param1">
-			 *    <span class="error error_param1"></span>
+			 *    <span class="error_msg" data-for="param1"></span>
 			 *    <input type="text" name="param2">
-			 *    <span class="error error_param2"></span>
+			 *    <span class="error_msg" data-for="param2"></span>
 			 *                     :
 			 *    <input type="sbumit">
 			 * </form>
 			 * 
-			 * /path/to/post.json is expected to return json string below:
+			 * expected /path/to/post.json response:
+			 * 
 			 * {
-			 *    success:true, // if true
-			 *    errors:{
+			 *    success:true, // when sucess
+			 *    errors:{ // when validation error
 			 *        '<param_name>':'<error message>', 	// validation error for param_name
 			 *        '<param_name>':'<error message>', 	// validation error for param_name
 			 *                       :
 			 *        '@all':'<error message>'				// relational error
 			 *    },
-			 *    systemerror:'system error message'		// system error (ex: generic exceptions)
+			 *    systemerror:'<system error message>'		// system error (ex: generic exceptions)
 			 * }
+			 * 
+			 * options)
+			 *     $(form).fomrPost({
+			 *         error_class:'<error message class - defalt:error_msg>'
+			 *     })
 			 * 
 			*/
 			
@@ -265,20 +278,30 @@
 				return $(this);
 			}
 			
+			opts = $.extend({
+				error_class:'error_msg',
+				posting_class:'posting'
+			},opts);
+			
 			var form = $(this);
 			
+			var url = opts.url;
 			if (url === undefined) {
 				url = form.attr('action');
 			}
 			
+			if (url === undefined) {
+				alert('form action is nothing.');
+			}
+			
 			return $.Deferred(function(_d){
 				try {
-					form.find('.error').css('display:none');
+					form.addClass(opts.posting_class);
+					form.find('.'+opts.error_class).text('').css('display','none');
 					var data = form.formGet();
-					data[new Date().getTime()]='';
-					form.addClass('posting');
 					form.find((':input')).attr('disabled','disabled');
-					form.find('.error').css('display','none').text('');
+					
+					data[new Date().getTime()]='';
 					$.ajax({
 						'url':url,
 						'type':'POST',
@@ -299,11 +322,10 @@
 							return;
 						}
 						if (res.errors) {
-							for (var k in res.errors) {
-								form.find('.error_'+k)
-									.text(res.errors[k])
-									.css('display','');
-							}
+							$.each(res.errors, function(k,v){
+								form.find('.'+opts.error_class+'[data-for="'+k+'"]')
+									.text(v).css('display','');
+							});
 							_d.reject(res);
 						} else {
 							_d.reject(res);
@@ -311,14 +333,14 @@
 					}).fail(function(xhr){
 						_d.reject({'ajaxerror':xhr});
 					}).always(function(){
-						form.removeClass('posting');
+						form.removeClass(opts.posting_class);
 						setTimeout(function(){
 							form.find(':input').removeAttr('disabled');
 						}, 1500);
 					});
 				} catch (ex) {
 					_d.reject({'systemerror':ex});
-					setTimeout(function(){ throw ex; },100);
+					setTimeout(function(){ throw ex; },500);
 				}
 			}).promise();
 		}

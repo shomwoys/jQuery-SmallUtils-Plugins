@@ -160,14 +160,14 @@ hiddenを除くすべての入力要素の値を空白にします（リセッ�
 
 ### Ajaxによるフォームのポストおよびエラー表示処理
 
-	$(form).formPost()
+	$(form).formPost(opts)
 
 ex)
 
     <form>
-        <span class="error error_@all></span>
-        <input name='text1'><span class="error error_text1><br>
-        <input name='text2'><span class="error error_text2><br>
+        <span class="error_msg" data-for="@all">全体用エラーメッセージ</span>
+        <input name='text1'><span class="error_msg" data-for="text1">text1用エラーメッセージ</span><br>
+        <input name='text2'><span class="error_msg" data-for="text2">text1用エラーメッセージ</span><br>
         <input type="submit">
     </form>
     <script>
@@ -175,13 +175,13 @@ ex)
         $('form').submit(function(){
             $(this).formPost()
             .then(function(res){
-                location.href="post_success.html"
+                location.href="post_success.html";
             }).fail(function(res){
-                if (res.systemerror) { alert('failed for some server reason:'+res.systemerror; }
-                if (res.ajaxerror) { alert('failed for some netowrk reason:'+res.ajaxerror; }
+                if (res.systemerror) { alert('サーバエラー:'+res.systemerror; }
+                if (res.ajaxerror) { alert('ネットワークエラー:'+res.ajaxerror; }
             });
             return false;
-        });
+        }).find('.error_msg[data-for]').css('display':'none');
     });
     </script>
 

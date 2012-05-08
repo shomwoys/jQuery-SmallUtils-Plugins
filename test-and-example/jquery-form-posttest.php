@@ -22,7 +22,7 @@ try {
 	// input and require/validation
 	//   <Label on Mail> => array(<POST param>, <required count>, <validation RegExp>, <error message>)
 	$params = array(
-		'Not Resuired Text' 
+		'Not Required Text' 
 			=> array('text',		0,	'/^.*$/', ''),
 		'URL'
 			=> array('url',			1,	$URL_REGEX, 'URL is invalid.'),
@@ -70,13 +70,17 @@ try {
 		'password'=>'<PASSWORD>',
 	);
 	
-	$address = 'target_address@example.com';
 	$header = array(
 		'From' => 'noreply@exmaple.com',
-		'To' => $address,
+		'To' => 'target_address@exmaple.com',
+		//'Bcc' => 'bcc_address@exmaple.com',
+		//'Cc' => 'cc_address@exmaple.com',
 		'Subject' => 'test form from jquery-form-posttest.php'
 	);
-
+	
+	// mail body : append <Label on Mail> : <Posted Value>
+	$body = array('This mail is sent by jquery-form-posttest.php.','','');
+	
 	//////////////////////////////////////////////////////////////////////////////////
 	
 	function json_response($result){
@@ -87,8 +91,7 @@ try {
 	}
 	
 	$values = array();
-	$body = array();
-
+	
 	foreach ( $params as $label => $specs ) {
 		$param = $specs[0];
 		$reqired_count = $specs[1];
@@ -128,13 +131,20 @@ try {
 	if (!$errors) {
 		$body = join("\n", $body);
 		
+		$recipient = $header['To'];
+		if ($header['Cc']) {
+			$recipient .= ','.$header['Cc'];
+		}
+		if ($header['Bcc']) {
+			$recipient .= ','.$header['Bcc'];
+		}
+		
 		$mail = Mail::factory('smtp', $mail_params);
-		$ret = $mail->send($address, $header, $body);
+		$ret = $mail->send($recipient, $header, $body);
 		if ( PEAR::isError($ret)) {
 			throw new Exception($ret->getMessage());
 		} else {
 			$result = array('success' => true);
-			session_destroy();
 		}
 	}
 

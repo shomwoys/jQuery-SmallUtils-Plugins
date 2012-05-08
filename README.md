@@ -160,14 +160,14 @@ unset all input values in form - not 'reset'
 
 ### POST form by Ajax
 
-	$(form).formPost()
+	$(form).formPost(opts)
 
 ex)
 
     <form>
-        <span class="error error_@all></span>
-        <input name='text1'><span class="error error_text1><br>
-        <input name='text2'><span class="error error_text2><br>
+        <span class="error_msg" data-for="@all">error for all placeholder</span>
+        <input name='text1'><span class="error_msg" data-for="text1">error for text1 placeholder</span><br>
+        <input name='text2'><span class="error_msg" data-for="text2">error for text2 placeholder</span><br>
         <input type="submit">
     </form>
     <script>
@@ -175,13 +175,13 @@ ex)
         $('form').submit(function(){
             $(this).formPost()
             .then(function(res){
-                location.href="post_success.html"
+                location.href="post_success.html";
             }).fail(function(res){
                 if (res.systemerror) { alert('failed for some server reason:'+res.systemerror; }
                 if (res.ajaxerror) { alert('failed for some netowrk reason:'+res.ajaxerror; }
             });
             return false;
-        });
+        }).find('.error_msg[data-for]').css('display':'none');
     });
     </script>
 
@@ -193,6 +193,7 @@ expected server response:
         -> {
                 errors:{
                     '<field name>:'<reason>'
+                             :
                 }
            }
     serverside system error
