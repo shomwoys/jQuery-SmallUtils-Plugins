@@ -99,7 +99,7 @@ try {
 		$errmsg = $specs[3];
 		$v = $_REQUEST[$param];
 		if (is_null($v)) {
-			if ($required) {
+			if ($required_count) {
 				$errors[$param] = $errmsg;
 				continue;
 			}
@@ -132,10 +132,10 @@ try {
 		$body = join("\n", $body);
 		
 		$recipient = $header['To'];
-		if ($header['Cc']) {
+		if (isset($header['Cc'])) {
 			$recipient .= ','.$header['Cc'];
 		}
-		if ($header['Bcc']) {
+		if (isset($header['Bcc'])) {
 			$recipient .= ','.$header['Bcc'];
 		}
 		
