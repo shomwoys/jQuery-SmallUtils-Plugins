@@ -8,7 +8,8 @@
 			 * opts : {
 			 *    linebreaksbr:<true|false> // convert linebreaks to <br>
 			 *    trunc:[<head_len>, <tail_len>, <trunc_protocol(bool)>] // truncate URL as "http://www.exam....ndex.html"
-			 *    target:<link 'target'>
+			 *    target:<link 'target'>.
+			 *    twitter:<true|false> // urlize @xxx, #xxx for Twitter
 			 * }
 			 */
 			opts = $.extend({
