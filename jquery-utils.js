@@ -127,7 +127,7 @@
 			return $.doLaterWith([], null, func, delay);
 		},
 		
-		resolve: function(obj, str){
+		resolve: function(obj, str, val){
 			/**
 			 * resolve object by string.
 			 * ex)
@@ -138,12 +138,12 @@
 			 *   $.resolve(obj, 'var.arr[1]'); -> obj.var.arr[1]
 			 *   $.resolve(obj, 'func()[10]'); -> obj
 			 */
-		
-			var bits = str.split('.'), bit;
+			
+			var bits = str.split('.'), bit, settable = false;
 			var curobj = obj;
 			var curname = '';
 			while(bit = bits.shift()) {
-			
+				
 				if (curobj === undefined) {
 					throw new Error('ResolveError: obj is undefined:<obj>'+curname);
 				}
@@ -161,18 +161,27 @@
 						throw new Error('ResolveError: property is undefined:<obj>'+curname);
 					}
 					if (isfunc) {
+						settable = false;
 						if (curobj[name].call === undefined) {
 							throw new Error('ResolveError:property is not callable:<obj>'+curname);
 						}
 						curobj = curobj[name].call(curobj);
 					} else {
+						settable = true;
 						if (curobj[name] === undefined) {
 							throw new Error('ResolveError:undefined property:<obj>'+curname);
 						}
 						curobj = curobj[name][arraynum];
 					}
 				} else {
+					settable = true;
 					curobj = curobj[name];
+				}
+			}
+			
+			if (val !== undefined) {
+				if (settable) {
+					eval('(function(obj,v){obj.'+str+' = v;})(obj,val)');
 				}
 			}
 			
