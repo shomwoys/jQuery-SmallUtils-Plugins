@@ -1,0 +1,327 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <title>Jquery-smallutils-plugins by shomwoys</title>
+
+    <link rel="stylesheet" href="stylesheets/styles.css">
+    <link rel="stylesheet" href="stylesheets/pygment_trac.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+  </head>
+  <body>
+    <div class="wrapper">
+      <header>
+        <h1>Jquery-smallutils-plugins</h1>
+        <p>jQuery Plugins - typeOf, closure, dateformat, numberformat, form utils (get,set,post), HTML based template</p>
+        <p class="view"><a href="https://github.com/shomwoys/jQuery-SmallUtils-Plugins">View the Project on GitHub <small>shomwoys/jQuery-SmallUtils-Plugins</small></a></p>
+        <ul>
+          <li><a href="https://github.com/shomwoys/jQuery-SmallUtils-Plugins/zipball/master">Download <strong>ZIP File</strong></a></li>
+          <li><a href="https://github.com/shomwoys/jQuery-SmallUtils-Plugins/tarball/master">Download <strong>TAR Ball</strong></a></li>
+          <li><a href="https://github.com/shomwoys/jQuery-SmallUtils-Plugins">View On <strong>GitHub</strong></a></li>
+        </ul>
+      </header>
+      <section>
+        <h1>jQuery Plugins</h1>
+
+<p>This repository provides small utils for jQuery.</p>
+
+<p>Better typeof(), make closure, Date utils, Number utils, URLize, form utils and HTML based template.</p>
+
+<h2>jquery-utils.js</h2>
+
+<p>Small utils.</p>
+
+<h3>better typeof</h3>
+
+<pre><code>$.typeOf(v)
+-&gt; "null","undefined","boolean","number","string","array","date","regexp","object"
+</code></pre>
+
+<h3>make closure function</h3>
+
+<pre><code>$.closure(args,thisobj,func)
+</code></pre>
+
+<p>ex)</p>
+
+<pre><code>var f = $.closure([1,2],{a:3},function(_a,_b,c){print _a,_b,c,this});
+f(4);
+-&gt; 1,2,4,{a:3}
+</code></pre>
+
+<h3>$.Deferred setTimeout (with closure)</h3>
+
+<pre><code>$.doLater(func,delay);
+$.doLaterWith(args, thisobj, func,delay);
+</code></pre>
+
+<p>ex)</p>
+
+<pre><code>$.doLater(function(){print '1'}).then(function(){
+    print 'success';
+},100).fail(function(ex){
+    alert('exception:'+ex.toString():);
+});
+$.doLaterWith([1,2],null,function(_a,_b){print _1}).then(function(){
+    print 'success';
+},100).fail(function(ex){
+    alert('exception:'+ex.toString():);
+});
+</code></pre>
+
+<h3>Date utils</h3>
+
+<h4>parse ISO8601 string to Date()</h4>
+
+<pre><code>$.parseISO8601('1970-01-01T00:00:00Z');
+-&gt; Date(0)
+</code></pre>
+
+<h4>format Date() to String by format</h4>
+
+<pre><code>$.dateformat(date,formatstr)
+</code></pre>
+
+<p>ex)</p>
+
+<pre><code>$.dateformat(new Date(0), 'yyyy/MM/dd HH:mm');
+-&gt; "1970/01/01 00:00" (localtime)
+</code></pre>
+
+<h3>Number utils</h3>
+
+<h4>comma separated string for number</h4>
+
+<pre><code>$.numformat.comma3(1234)
+-&gt; "1,234"
+$.numformat.comma3(1234.5678)
+-&gt; "1,234.5678"
+</code></pre>
+
+<h4>round any decimal position and padding 0</h4>
+
+<pre><code>$.numformat.round(num, posisition, pad0_flag)
+</code></pre>
+
+<p>ex)</p>
+
+<pre><code>$.numformat.round(1.445, -2) -&gt; 1.45
+$.numformat.round(1.499, -2) -&gt; 1.50
+$.numformat.round(149,1) -&gt; 150
+</code></pre>
+
+<h4>kilo, mega (shortcut: round(num, 1024, false),round(num, 1024*1024, false)</h4>
+
+<pre><code>$.numformat.kilo(1024*10)
+-&gt; 10
+$.numformat.mega(1024*1024*10)
+-&gt; 10
+</code></pre>
+
+<h3>Resolve object by String</h3>
+
+<pre><code>$.resolve({a:{b:{c:1}}}, 'b.c') -&gt; 1
+$.resolve({a:{b:[{c:2}]}}, 'b[0].c') -&gt; 2
+</code></pre>
+
+<h2>jquery-urlize.js</h2>
+
+<h3>URLize ( text to HTML with URLized/&lt;BR&gt; )</h3>
+
+<pre><code>$.urlize(text)
+</code></pre>
+
+<p>Convert text to escaped html.
+'http://...','https://...','ftp://...' convert to to &lt;a&gt; and linebreaks convert to &lt;br&gt;</p>
+
+<pre><code>$().urlize(text)
+</code></pre>
+
+<p>urlized $().text(text)</p>
+
+<p>ex)</p>
+
+<pre><code>$('div').urlize(
+    "This text is urlized and linebreaksbred.\n"
+    + "http://www.jquery.com/ urlized to &lt;a target="_taret" href="http://www.jquery.com/"&gt;http://www.jquery.com&lt;/a&gt;,\n"
+    + "and all linebreaks converted to &lt;br&gt;"
+)
+</code></pre>
+
+<h2>jquery-form.js</h2>
+
+<p>form values helper.</p>
+
+<h3>Get form :input values as Object</h3>
+
+<pre><code>$(form).formGet()
+</code></pre>
+
+<p>ex)</p>
+
+<pre><code>$('&lt;form&gt;&lt;input name="a" value="b"&gt;&lt;/form&gt;')).formGet()
+-&gt; {'a':'b'}
+$('&lt;form&gt;'
+    +'&lt;input name="a" value="b"&gt;'
+    +'&lt;input name="a" value="c"&gt;'
+    +'&lt;/form&gt;'
+).formGet()
+-&gt; {'a':['b','c']}
+</code></pre>
+
+<h3>Set form :input values with Object</h3>
+
+<pre><code>$(form).formSet(obj)
+</code></pre>
+
+<p>ex)</p>
+
+<pre><code>$(form).formSet({
+    'text':'value1',
+    'cb':['chk1','chk3']
+});
+</code></pre>
+
+<h3>Clear form :input values</h3>
+
+<pre><code>$(form).formClear()
+</code></pre>
+
+<p>unset all input values in form - not 'reset'</p>
+
+<h3>POST form by Ajax</h3>
+
+<pre><code>$(form).formPost(opts)
+</code></pre>
+
+<p>ex)</p>
+
+<pre><code>&lt;form&gt;
+    &lt;span class="error_msg" data-for="@all"&gt;error for all placeholder&lt;/span&gt;
+    &lt;input name='text1'&gt;&lt;span class="error_msg" data-for="text1"&gt;error for text1 placeholder&lt;/span&gt;&lt;br&gt;
+    &lt;input name='text2'&gt;&lt;span class="error_msg" data-for="text2"&gt;error for text2 placeholder&lt;/span&gt;&lt;br&gt;
+    &lt;input type="submit"&gt;
+&lt;/form&gt;
+&lt;script&gt;
+$(function(){
+    $('form').submit(function(){
+        $(this).formPost()
+        .then(function(res){
+            location.href="post_success.html";
+        }).fail(function(res){
+            if (res.systemerror) { alert('failed for some server reason:'+res.systemerror; }
+            if (res.ajaxerror) { alert('failed for some netowrk reason:'+res.ajaxerror; }
+        });
+        return false;
+    }).find('.error_msg[data-for]').css('display':'none');
+});
+&lt;/script&gt;
+</code></pre>
+
+<p>expected server response:</p>
+
+<pre><code>success
+    -&gt; { success:true; }
+validation error
+    -&gt; {
+            errors:{
+                '&lt;field name&gt;:'&lt;reason&gt;'
+                         :
+            }
+       }
+serverside system error
+    -&gt; { systemerror:'&lt;reason&gt;'; }
+</code></pre>
+
+<h2>jquery-datatmpl.js</h2>
+
+<p>HTML DOM based template.</p>
+
+<pre><code>$(elem).dataTmpl(context, options)
+or
+var tmpl = new $.DataTmpl(target);
+tmpl.render(context);
+</code></pre>
+
+<p>This tempalte mapped object values to HTML elements with 'data-tmpl' (as key of values).</p>
+
+<p>ex)</p>
+
+<pre><code>&lt;script&gt;
+$(function(){
+$("target").dataTmpl({
+    str:'string',
+    nest:{
+        nested:'nested'
+    },
+    array:[
+        { data:1 },
+        { data:2 }
+    ],
+    now:new Date(),
+    html:{
+        '@as_html':true,
+        '@html':'some &lt;b&gt;HTML&lt;/b&gt; contents',
+        '@style':{ 'font-weight':'bold' },
+        'class':'someclass'
+    },
+});
+});
+&lt;/script&gt;
+
+&lt;target&gt;
+    &lt;span data-tmpl="str"&gt;str placeholder&lt;/span&gt;
+    &lt;div data-tmpl="nest"&gt;
+        &lt;div data-tmpl="nest.nested"&gt;nest.nested placeholder&lt;/div&gt;
+    &lt;/div&gt;
+    &lt;div data-tmpl="array"&gt;
+        &lt;span data-tmpl="array:data&gt;array[x].data placeholder&lt;/span&gt;
+    &lt;/div&gt;
+    &lt;div data-tmpl="now"&gt;formatted as yyyy/MM/dd HH:mm:ss&lt;/div&gt;
+    &lt;div data-tmpl="html"&gt;html placeholder&lt;/div&gt;
+&lt;/target&gt;
+</code></pre>
+
+<p>DataTmpl object can update dynamically.</p>
+
+<pre><code>tmpl.update(extend_context);
+
+var affected = tmpl.spliceRows("&lt;key for array&gt;", position, delete_count, insert_array);
+var affected = tmpl.appendRows("&lt;key for array&gt;", insert_array);
+tmpl.prependRows("&lt;key for array&gt;", insert_array);
+tmpl.insertRows("&lt;key for array&gt;", pos, insert_array);
+tmpl.deleteRows("&lt;key for array&gt;", pos, delete_count);
+</code></pre>
+
+<p>and selectable.</p>
+
+<pre><code>tmpl.selectRows("&lt;key for array&gt;", pos, count)
+</code></pre>
+
+<p>ex)</p>
+
+<pre><code>tmpl.update({ "array":[{ data:"updated row1"}] });
+    -&gt; replace context.array to [ { data:"updated row1" } ] and refresh all
+tmpl.appendRows("array", [{ data:"row1" }, { data:"row2" }]);
+    -&gt; append [{ data:"row1" }, { data:"row2" }] to context.array and append new elements
+tmpl.deleteRows("array", 1, 2);
+    -&gt; delete context.array[1],context.arra[2] and remove elements
+tmpl.selectRows("array", 0, 10).fadeOut(function(){
+    tmpl.deleteRows("array", 0, 1);
+});
+    -&gt; delete context.array[0] to array[9] and remove elements
+</code></pre>
+      </section>
+      <footer>
+        <p>This project is maintained by <a href="https://github.com/shomwoys">shomwoys</a></p>
+        <p><small>Hosted on GitHub Pages &mdash; Theme by <a href="https://github.com/orderedlist">orderedlist</a></small></p>
+      </footer>
+    </div>
+    <script src="javascripts/scale.fix.js"></script>
+    
+  </body>
+</html>
