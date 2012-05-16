@@ -263,6 +263,7 @@ and selectable.
     tmpl.selectRows("<key for array>", pos, count)
 
 ex)
+
     tmpl.update({ "array":[{ data:"updated row1"}] });
         -> replace context.array to [ { data:"updated row1" } ] and refresh all
     tmpl.appendRows("array", [{ data:"row1" }, { data:"row2" }]);

@@ -263,6 +263,7 @@ DataTmplオブジェクトは動的に変更できる。
     tmpl.selectRows("<key for array>", pos, count);
 
 ex)
+
     tmpl.update({ "array":[{ data:"updated row1"}] });
         -> context.array を [ { data:"updated row1" } ] に置き換え、全体を再レンダリング
     tmpl.appendRows("array", [{ data:"row1" }, { data:"row2" }]);
