@@ -206,6 +206,9 @@ jquery-datatmpl.js
 HTML DOMベースのテンプレートユーティリティ。
 
     $(elem).dataTmpl(context, options)
+    もしくは
+    var tmpl = new $.DataTmpl(target);
+    tmpl.render(context);
 
 オブジェクトのプロパティ値を、対応するdata-tmpl属性をもつHTML要素に設定する。
 context.varnameの値は、data-tmpl="varname"の内容としてセットされる。
@@ -246,3 +249,19 @@ ex)
         <div data-tmpl="html">html placeholder</div>
     </target>
 
+DataTmplオブジェクトは動的に変更できる。
+
+    tmpl.update(extend_context);
+    tmpl.spliceRows("<key for array>", position, delete_count, insert_array);
+    tmpl.appendRows("<key for array>", insert_array);
+    tmpl.prependRows("<key for array>", insert_array);
+    tmpl.insertRows("<key for array>", pos, insert_array);
+    tmpl.deleteRows("<key for array>", pos, delete_count);
+
+ex)
+    tmpl.update({ "array":[{ data:"updated row1"}] });
+        -> context.array を [ { data:"updated row1" } ] に置き換え、全体を再レンダリング
+    tmpl.appendRows("array", [{ data:"row1" }, { data:"row2" }]);
+        -> context.arrayに { data:"row1" },{ data:"row2" } を追加し、追加要素を描画
+    tmpl.deleteRows("array", 1, 2);
+        -> context.array[1],context.arra[2] を削除し、対応要素を削除 

@@ -20,7 +20,7 @@ function msg(str, obj){
 	if (obj !== undefined) {
 		str += "\n---\n" + $.toJSON(obj, "\n", '  ');
 	}
-	return $('<div class="pre">').addClass('pre').text(str)
+	return $('<div>').addClass('pre').text(str)
 		.appendTo($('#msg'));
 }
 function err(str, obj){
@@ -35,7 +35,7 @@ $(function(){
 <style>
 
 div.pre {
-	white-space:pre;
+	white-space:pre-wrap;
 	border:4px solid #ccc;
 	overflow:auto;
 	width:auto;
@@ -271,16 +271,16 @@ $(function(){
 			arr3:[
 			  { data:'a2[0].a3[0].d' },
 			  { data:'a2[1].a3[1].d' },
-			  { data:'a2[2].a3[2].d' },
+			  { data:'a2[2].a3[2].d' }
 			]
 		  },
 		  {
 			data:'a2[1].d',
 			arr3:[
 			  { data:'a2[1].a3[0].d' },
-			  { data:'a2[1].a3[1].d' },
+			  { data:'a2[1].a3[1].d' }
 			]
-		  },
+		  }
 		],
 		arr3:[]
 	};
@@ -403,7 +403,7 @@ $(function(){
 		  { label:'label3/1', content:'content3' },
 		  { label:'label4/1', content:'content4' },
 		  { label:'label5/1', content:'content5' },
-		  { label:'label6/1', content:'content6' },
+		  { label:'label6/1', content:'content6' }
 		],
 		'page':1,
 		'has_prev':false,
@@ -421,7 +421,7 @@ function make_partial(p){
 		  { label:'label3/'+p, content:'content3' },
 		  { label:'label4/'+p, content:'content4' },
 		  { label:'label5/'+p, content:'content5' },
-		  { label:'label6/'+p, content:'content6' },
+		  { label:'label6/'+p, content:'content6' }
 		],
 		'page':p,
 		'has_prev':(p>1),
@@ -443,6 +443,43 @@ function partial_prev(){
 function partial_next(){
 	update_partial(++partial_page);
 }
+
+var insertIdx = 0;
+
+function insertRows(){
+	updatableTmpl.insertRows('data', 3, [
+		{ label:'inserted',content:'inserted'+(++insertIdx)},
+		{ label:'inserted',content:'inserted'+(++insertIdx)}
+	]);
+	msg('context', updatableTmpl.context);
+}
+
+function deleteRows(){
+	updatableTmpl.deleteRows('data', 3, 2);
+	msg('context', updatableTmpl.context);
+}
+
+function appendRows(){
+	updatableTmpl.appendRows('data', [
+		{ label:'appended',content:'appended'+(++insertIdx)},
+		{ label:'appended',content:'appended'+(++insertIdx)}
+	]);
+	msg('context', updatableTmpl.context);
+}
+
+function prependRows(){
+	updatableTmpl.prependRows('data', [
+		{ label:'prepended',content:'prepended'+(++insertIdx)},
+		{ label:'prepended',content:'prepended'+(++insertIdx)}
+	]);
+	msg('context', updatableTmpl.context);
+}
+
+function refresh(){
+	updatableTmpl.update();
+	msg('context', updatableTmpl.context);
+}
+
 </script>
 <div id="target4" class="tmpl">
 	<div data-tmpl="label"></div>
@@ -464,6 +501,13 @@ function partial_next(){
 	</div>
 	<div data-tmpl="!data">
 		No Data
+	</div>
+	<div>
+		<a onclick="insertRows()">insertRows</a>
+		<a onclick="deleteRows()">deleteRows</a>
+		<a onclick="prependRows()">prependRows</a>
+		<a onclick="appendRows()">appendRows</a>
+		<a onclick="refresh()">refresh</a>
 	</div>
 </div>
 

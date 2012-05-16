@@ -1,4 +1,3 @@
-
 /**
  * HTML and JSON base template plugin.
  * 
@@ -119,6 +118,52 @@
  * $('#bookmarks').dataTmpl(context).removeClass('loading');
  * });
  * </script>
+ * 
+ * DataTmpl Class:
+ * 
+ * If you want to update template dynamically, you can use DataTmpl().
+ * 
+ * var target = new $.DataTmpl($('target4'));
+ * target.render(context);
+ * 
+ * equivarent
+ * 
+ * $('#target').dataTmpl(context);
+ * 
+ * and update object:
+ * target.update(updated_context); // re-render all
+ * target.spliceRows("<key for array>", position, delete_count, insert_array); // similler to Array.splice()
+ * 
+ * shorthand for spliceRows:
+ * 
+ * target.insertRows("<key for array>", position, insert_array);
+ * target.deleteRows("<key for array>", delete_count);
+ * target.appendRows("<key for array>", insert_array);
+ * target.prependRows("<key for array>", insert_array);
+ * 
+ * Current context is target.context.
+ * 
+ * Example:
+ * <target>
+ *   <title data-tmpl="title">context.title placeholder</title>
+ *   <row data-tmpl="row"><san data-tmpl="row:col1">context.row[].col1 placeholder</span></row>
+ * </target>
+ * <script>
+ * $(function(){
+ *   var target = new DataTmpl($("target"));
+ *   target.render({ 'title':'Title', row:[{col1:"col1"},{col1:"col2"},{col1:"col3"}] });
+ *   
+ *   // update all elements for cotext.row
+ *   target.update({ row:[{col1:"new-col1"},{col1:"new col2"}] });
+ *   
+ *   target.appendRow('row', { col1:"appended" });
+ *   target.prependRow('row', { col1:"prepended" });
+ *             :
+ *   
+ * });
+ * </script>
+ * 
+ * 
  */
 
 (function($){
@@ -309,12 +354,6 @@
 		
 	};
 	
-	DataTmpl.prototype.update = function(context){
-		$(this.element).find('[data-tmpl-gen]').remove();
-		this.context = $.extend(this.context, context);
-		this.render(this.context);
-	};
-	
 	DataTmpl.prototype.render = function(context){
 		
 		this.context = context;
@@ -374,28 +413,31 @@
 			
 			if (!targets[0]) { continue; }
 			
-			var _opts = this.options;
+			var _opts = this.options, _cnt=0;
 			targets.each(function(){
-				// toggles.removeClass('tmpl_disabled');
 				switch ($.typeOf(v)) {
 				case 'array':
-					var target = $(this), newelm, tmp=target;
+					var target = $(this);
+					var newelm, tmp=target;
 					var opts = $.extend({},_opts);
 					opts.prefix = kn+':';
 					for (var i=0,l=v.length;i<l;i++){
+						if (i == l-1 && v[i] === undefined) { break; } // for IE8-
 						opts.count = i;
 						newelm = target.clone(true)
-							.attr('data-tmpl-gen',1)
+							.attr('data-tmpl-gen', kn)
+							.removeAttr('data-tmpl')
 							.removeClass('tmpl_disabled');
 						tmp.after(newelm.dataTmpl(v[i], opts));
 						tmp = newelm;
 					}
+					target.attr('data-tmpl-arr', ++_cnt);
 					break;
 				case 'object':
 					if (!v['@as_html']){
 						var opts = $.extend({},_opts);
 						opts.prefix = kn+'.';
-						$(this).dataTmpl(v, opts);
+						$(this).dataTmpl(v, opts).removeClass('tmpl_disabled');
 						break;
 					}
 				default:
@@ -405,6 +447,93 @@
 		}
 		return _elem;
 	};
+	
+	DataTmpl.prototype.update = function(context){
+		$(this.element).find('[data-tmpl-gen]').remove();
+		this.context = $.extend(this.context, context);
+		this.render(this.context);
+	};
+	
+	
+	DataTmpl.prototype.appendRows = function(key, arr) {
+		var target_arr = $.resolve(this.context, key);
+		if ($.typeOf(target_arr) !== 'array') {
+			throw new Error('DataTmpl().array_insert():'+key+' is not an array.');
+		}
+		pos = target_arr.length;
+		return this.spliceRows(key, pos, 0, arr);
+	},
+	
+	DataTmpl.prototype.prependRows = function(key, arr){
+		return this.spliceRows(key, 0, 0, arr);
+	}
+	
+	DataTmpl.prototype.insertRows = function(key, pos, arr){
+		return this.spliceRows(key, pos, 0, arr);
+	},
+	
+	DataTmpl.prototype.deleteRows = function(key, pos, delete_count){
+		return this.spliceRows(key, pos, delete_count);
+	}
+	
+	DataTmpl.prototype.spliceRows = function(key, pos, delete_count, arr){
+		/**
+		 * @param key context key string ex) 'data' means insert arr to this.context.mean (array)
+		 * @param pos insert position (0 origin)
+		 * @param arr insert array at index <pos> of this.context[key] (array)
+		 */
+		var target_arr = $.resolve(this.context, key);
+		if ($.typeOf(target_arr) !== 'array') {
+			throw new Error('DataTmpl().spliceRows():'+key+' is not an array.');
+		}
+		if (pos >= target_arr.length) {
+			pos = target_arr.length;
+		}
+		var is_delete = true;
+		var args = [pos, delete_count];
+		if (arguments.length >= 4) {
+			is_delete = false;
+			args = args.concat(arr);
+		}
+		target_arr.splice.apply(target_arr, args);
+		$.resolve(this.context, key, target_arr);
+		
+		var appended = $();
+		$(this.element).find('[data-tmpl="'+key+'"][data-tmpl-arr]').each(function(){
+			var target = $(this);
+			//var idx = $(this).attr('data-tmpl-arr');
+			
+			if (delete_count > 0){
+				while (delete_count--){
+					$(this).parent().find('[data-tmpl-gen="'+key+'"]:nth-child('+(pos+3)+')').remove();
+				}
+			}
+			
+			// remove deleted
+			var tmp = $(this).parent().find('[data-tmpl-gen="'+key+'"]:nth-child('+(pos+2)+')')
+			if (pos == 0){
+				tmp = target;
+			}
+			
+			// insert
+			if (!is_delete) {
+				var opts = { prefix : key + ':' };
+				for (var i=0,l=arr.length;i<l;i++){
+					if (i == l-1 && arr[i] === undefined) { break; } // for IE8-
+					opts.count = i + pos;
+					newelm = target.clone(true)
+						.attr('data-tmpl-gen',key)
+						.removeAttr('data-tmpl')
+						.removeClass('tmpl_disabled');
+					tmp.after(newelm.dataTmpl(arr[i], opts));
+					tmp = newelm;
+					appended.add(newelm);
+				}
+			}
+		});
+		return appended;
+	}
+	
 	
 	$.extend({
 		DataTmpl:DataTmpl

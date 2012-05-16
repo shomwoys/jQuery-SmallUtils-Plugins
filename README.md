@@ -206,6 +206,9 @@ jquery-datatmpl.js
 HTML DOM based template.
 
     $(elem).dataTmpl(context, options)
+    or
+    var tmpl = new $.DataTmpl(target);
+    tmpl.render(context);
 
 This tempalte mapped object values to HTML elements with 'data-tmpl' (as key of values).
 
@@ -228,7 +231,7 @@ ex)
             '@html':'some <b>HTML</b> contents',
             '@style':{ 'font-weight':'bold' },
             'class':'someclass'
-        }
+        },
     });
     });
     </script>
@@ -245,4 +248,19 @@ ex)
         <div data-tmpl="html">html placeholder</div>
     </target>
 
+DataTmpl object can update dynamically.
 
+    tmpl.update(extend_context);
+    tmpl.spliceRows("<key for array>", position, delete_count, insert_array);
+    tmpl.appendRows("<key for array>", insert_array);
+    tmpl.prependRows("<key for array>", insert_array);
+    tmpl.insertRows("<key for array>", pos, insert_array);
+    tmpl.deleteRows("<key for array>", pos, delete_count);
+
+ex)
+    tmpl.update({ "array":[{ data:"updated row1"}] });
+        -> replace context.array to [ { data:"updated row1" } ] and refresh all
+    tmpl.appendRows("array", [{ data:"row1" }, { data:"row2" }]);
+        -> append [{ data:"row1" }, { data:"row2" }] to context.array and append new elements
+    tmpl.deleteRows("array", 1, 2);
+        -> delete context.array[1],context.arra[2] and remove elements 
