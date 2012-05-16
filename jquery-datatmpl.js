@@ -143,6 +143,8 @@
  * 
  * Current context is target.context.
  * 
+ * target.selectRows("<key for array>", position, count) returns jQuery oject for rows.
+ * 
  * Example:
  * <target>
  *   <title data-tmpl="title">context.title placeholder</title>
@@ -156,9 +158,12 @@
  *   // update all elements for cotext.row
  *   target.update({ row:[{col1:"new-col1"},{col1:"new col2"}] });
  *   
- *   target.appendRow('row', { col1:"appended" });
- *   target.prependRow('row', { col1:"prepended" });
+ *   target.appendRows('row', { col1:"appended" });
+ *   target.prependRows('row', { col1:"prepended" });
  *             :
+ *   target.selectRows('row', 3, 1).fadeOut(function(){
+ *     target.deleteRows('row', 3, 1);
+ *   });
  *   
  * });
  * </script>
@@ -242,6 +247,14 @@
 	};
 	
 	DataTmpl.prototype.fillElement = function(target, v){
+		var oldcontext = $.data(target[0],'context');
+		if (oldcontext) {
+			if (oldcontext == v) { // TODO: object equal?
+				return false;
+			}
+		} else {
+			$.data(target[0], 'context', v);
+		}
 		
 		var tag = target[0].tagName.toLowerCase();
 		var t = $.typeOf(v);
@@ -315,11 +328,11 @@
 					})).fail(function(ex){
 						throw ex;
 					});
-					return;
+					return true;
 				}
 			}
 			target.empty().append(sub).removeClass('tmpl_disabled');
-			return;
+			return true;
 		}
 		if (!('@as_html' in _v)) {
 			// target.dataTmpl(_v, opts, {key:kn+"."}).removeClass('tmpl_disabled');
@@ -352,11 +365,13 @@
 		}
 		target.removeClass('tmpl_disabled');
 		
+		return true;
 	};
 	
 	DataTmpl.prototype.render = function(context){
 		
 		this.context = context;
+		this.last_affected = $();
 		
 		var _thisObj = this;
 		var _elem = $(this.element);
@@ -428,7 +443,12 @@
 							.attr('data-tmpl-gen', kn)
 							.removeAttr('data-tmpl')
 							.removeClass('tmpl_disabled');
-						tmp.after(newelm.dataTmpl(v[i], opts));
+						//tmp.after(newelm.dataTmpl(v[i], opts));
+						var newtmpl = new DataTmpl(newelm, opts);
+						newtmpl.render(v[i]);
+						//_thisObj.last_affected = _thisObj.last_affected.add(newtmpl.last_affected);
+						_thisObj.last_affected = _thisObj.last_affected.add($(newelm));
+						tmp.after(newelm);
 						tmp = newelm;
 					}
 					target.attr('data-tmpl-arr', ++_cnt);
@@ -437,11 +457,18 @@
 					if (!v['@as_html']){
 						var opts = $.extend({},_opts);
 						opts.prefix = kn+'.';
-						$(this).dataTmpl(v, opts).removeClass('tmpl_disabled');
+						//$(this).dataTmpl(v, opts).removeClass('tmpl_disabled');
+						var newtmpl = new DataTmpl(this, opts);
+						newtmpl.render(v);
+						_thisObj.last_affected = _thisObj.last_affected.add(newtmpl.last_affected);
+						$(this).removeClass('tmpl_disabled');
 						break;
 					}
 				default:
-					_thisObj.fillElement($(this), v);
+					if (_thisObj.fillElement($(this), v)){
+						// modified
+						_thisObj.last_affected = _thisObj.last_affected.add($(this));
+					};
 				}
 			});
 		}
@@ -452,8 +479,28 @@
 		$(this.element).find('[data-tmpl-gen]').remove();
 		this.context = $.extend(this.context, context);
 		this.render(this.context);
+		return this.last_affected;
 	};
 	
+	DataTmpl.prototype.selectRows = function(key, pos, count) {
+		count = count === undefined ? 1 : count;
+		var target_arr = $.resolve(this.context, key);
+		if ($.typeOf(target_arr) !== 'array') {
+			throw new Error('DataTmpl().spliceRows():'+key+' is not an array.');
+		}
+		if (pos >= target_arr.length) {
+			pos = target_arr.length;
+		}
+		var selected = $();
+		$(this.element).find('[data-tmpl="'+key+'"][data-tmpl-arr]').each(function(){
+			var target = $(this);
+			
+			for (var i=0; i<count; i++){
+				selected = selected.add($(this).parent().find('[data-tmpl-gen="'+key+'"]:nth-child('+(pos+3+i)+')'));
+			}
+		});
+		return selected;
+	},
 	
 	DataTmpl.prototype.appendRows = function(key, arr) {
 		var target_arr = $.resolve(this.context, key);
@@ -490,21 +537,24 @@
 			pos = target_arr.length;
 		}
 		var is_delete = true;
+		delete_count = delete_count === undefined ? 1 : delete_count;
 		var args = [pos, delete_count];
-		if (arguments.length >= 4) {
+		if (arr !== undefined) {
 			is_delete = false;
 			args = args.concat(arr);
 		}
 		target_arr.splice.apply(target_arr, args);
 		$.resolve(this.context, key, target_arr);
 		
-		var appended = $();
+		var _thisObj = this;
+		_thisObj.last_affected = $();
+		
 		$(this.element).find('[data-tmpl="'+key+'"][data-tmpl-arr]').each(function(){
 			var target = $(this);
 			//var idx = $(this).attr('data-tmpl-arr');
 			
 			if (delete_count > 0){
-				while (delete_count--){
+				for (var i=0; i<delete_count; i++) {
 					$(this).parent().find('[data-tmpl-gen="'+key+'"]:nth-child('+(pos+3)+')').remove();
 				}
 			}
@@ -527,11 +577,11 @@
 						.removeClass('tmpl_disabled');
 					tmp.after(newelm.dataTmpl(arr[i], opts));
 					tmp = newelm;
-					appended.add(newelm);
+					_thisObj.last_affected = _thisObj.last_affected.add(newelm);
 				}
 			}
 		});
-		return appended;
+		return _thisObj.last_affected;
 	}
 	
 	

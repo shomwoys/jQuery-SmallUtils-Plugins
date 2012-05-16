@@ -258,6 +258,10 @@ DataTmplオブジェクトは動的に変更できる。
     tmpl.insertRows("<key for array>", pos, insert_array);
     tmpl.deleteRows("<key for array>", pos, delete_count);
 
+選択もできる。
+
+    tmpl.selectRows("<key for array>", pos, count);
+
 ex)
     tmpl.update({ "array":[{ data:"updated row1"}] });
         -> context.array を [ { data:"updated row1" } ] に置き換え、全体を再レンダリング
@@ -265,3 +269,7 @@ ex)
         -> context.arrayに { data:"row1" },{ data:"row2" } を追加し、追加要素を描画
     tmpl.deleteRows("array", 1, 2);
         -> context.array[1],context.arra[2] を削除し、対応要素を削除 
+    tmpl.selectRows("array", 0, 10).fadeOut(function(){
+        tmpl.deleteRows("array", 0, 1);
+    });
+        -> context.array[0] to array[9] を削除し、対応要素をフェードアウトし削除

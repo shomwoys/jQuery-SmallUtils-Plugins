@@ -251,11 +251,16 @@ ex)
 DataTmpl object can update dynamically.
 
     tmpl.update(extend_context);
-    tmpl.spliceRows("<key for array>", position, delete_count, insert_array);
-    tmpl.appendRows("<key for array>", insert_array);
+
+    var affected = tmpl.spliceRows("<key for array>", position, delete_count, insert_array);
+    var affected = tmpl.appendRows("<key for array>", insert_array);
     tmpl.prependRows("<key for array>", insert_array);
     tmpl.insertRows("<key for array>", pos, insert_array);
     tmpl.deleteRows("<key for array>", pos, delete_count);
+
+and selectable.
+
+    tmpl.selectRows("<key for array>", pos, count)
 
 ex)
     tmpl.update({ "array":[{ data:"updated row1"}] });
@@ -263,4 +268,8 @@ ex)
     tmpl.appendRows("array", [{ data:"row1" }, { data:"row2" }]);
         -> append [{ data:"row1" }, { data:"row2" }] to context.array and append new elements
     tmpl.deleteRows("array", 1, 2);
-        -> delete context.array[1],context.arra[2] and remove elements 
+        -> delete context.array[1],context.arra[2] and remove elements
+    tmpl.selectRows("array", 0, 10).fadeOut(function(){
+        tmpl.deleteRows("array", 0, 1);
+    });
+        -> delete context.array[0] to array[9] and remove elements

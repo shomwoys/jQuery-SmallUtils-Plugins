@@ -436,6 +436,7 @@ function make_partial(p){
 function update_partial(p){
 	var context = make_partial(p);
 	updatableTmpl.update(context);
+	updatableTmpl.last_affected.css('background','#cff');
 }
 function partial_prev(){
 	update_partial(--partial_page);
@@ -446,38 +447,51 @@ function partial_next(){
 
 var insertIdx = 0;
 
+function deleteRows(){
+	//updatableTmpl.deleteRows('data', 3, 2);
+	updatableTmpl.selectRows('data', 3, 2).css('background','#cff').slideUp(function(){
+		updatableTmpl.deleteRows('data', 3, 1);
+	});
+	// msg('context', updatableTmpl.context);
+}
+
 function insertRows(){
-	updatableTmpl.insertRows('data', 3, [
+	var inserted = updatableTmpl.insertRows('data', 3, [
 		{ label:'inserted',content:'inserted'+(++insertIdx)},
 		{ label:'inserted',content:'inserted'+(++insertIdx)}
 	]);
-	msg('context', updatableTmpl.context);
-}
-
-function deleteRows(){
-	updatableTmpl.deleteRows('data', 3, 2);
-	msg('context', updatableTmpl.context);
+	// msg('context', updatableTmpl.context);
+	inserted.css('background','#fcc').hide().fadeIn();
 }
 
 function appendRows(){
-	updatableTmpl.appendRows('data', [
+	var appended = updatableTmpl.appendRows('data', [
 		{ label:'appended',content:'appended'+(++insertIdx)},
 		{ label:'appended',content:'appended'+(++insertIdx)}
 	]);
-	msg('context', updatableTmpl.context);
+	// msg('context', updatableTmpl.context);
+	appended.css('background','#cfc').hide().slideDown();
 }
 
 function prependRows(){
-	updatableTmpl.prependRows('data', [
+	var prepended = updatableTmpl.prependRows('data', [
 		{ label:'prepended',content:'prepended'+(++insertIdx)},
 		{ label:'prepended',content:'prepended'+(++insertIdx)}
 	]);
-	msg('context', updatableTmpl.context);
+	// msg('context', updatableTmpl.context);
+	prepended.css('background','#ccf').hide().slideDown();
 }
 
 function refresh(){
-	updatableTmpl.update();
+	var affected = updatableTmpl.update();
+	affected.css('background','#cff');
+}
+function showContext(){
 	msg('context', updatableTmpl.context);
+}
+
+function selectRows(){
+	updatableTmpl.selectRows('data', 2, 2).css('background','#ffc').fadeOut(function(){$(this).fadeIn(function(){$(this).css('background','transparent')})});
 }
 
 </script>
@@ -508,6 +522,8 @@ function refresh(){
 		<a onclick="prependRows()">prependRows</a>
 		<a onclick="appendRows()">appendRows</a>
 		<a onclick="refresh()">refresh</a>
+		<a onclick="selectRows()">selectRows</a>
+		<a onclick="showContext()">context</a>
 	</div>
 </div>
 
