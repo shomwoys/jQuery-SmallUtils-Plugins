@@ -116,7 +116,7 @@ try {
 			}
 		}
 		$empties_count = array_count_values($v);
-		if ($required > count($v) - $empties_count[''] ){
+		if ($required_count > count($v) - $empties_count[''] ){
 			$errors[$param] = $errmsg;
 			continue;
 		}
@@ -124,11 +124,11 @@ try {
 		array_push($body, $label.' : '.implode(',', $v));
 	}
 
-	if (!$errors) {
+	if (count($errors) == 0) {
 		relations($values, $errors);
 	}
 
-	if (!$errors) {
+	if (count($errors) == 0) {
 		$body = join("\n", $body);
 		
 		$recipient = $header['To'];
@@ -143,12 +143,11 @@ try {
 		$ret = $mail->send($recipient, $header, $body);
 		if ( PEAR::isError($ret)) {
 			throw new Exception($ret->getMessage());
-		} else {
-			$result = array('success' => true);
 		}
+		$result = array('success' => true);
 	}
 
-	if ($errors) {
+	if (count($errors) > 0) {
 		$result = array('errors' => $errors);
 	}
 
