@@ -30,7 +30,18 @@ $(function(){
 
 function testall(){
 	$('.res').remove();
-	var v = $('#src').val();
+	var v = [
+		"This area contains text with url <b> http://www.jquery.com </b>",
+		"and linebreaks.",
+		"",
+		"",
+		"It's long URL https://very.very.very.looooooooong.url/path/to/long/long/long/long/?params=1&params=2&params=3.",
+		"long URL is truncated : https://12345678901234567890/12345677890/1234567890",
+		"",
+		"and Twitter @reply and #hash support.",
+		"#hash1 #hash2 #hash3",
+		"#日本語 #ハッシュ 全角　#スペース "
+	].join("\n");
 	for (var k in TEST) {
 		msg('----------- TEST:'+k+' ---------------');
 		TEST[k](v);
@@ -71,6 +82,14 @@ var TEST = {
 			target:'_top'
 		}).appendTo(document.body);
 	},
+	'test6':function(v){
+		$('<h3 class="res">').text('Twitter Link @reply, #hash ').appendTo(document.body);
+		$('<p class="res">').text('trunc:[10, 10, true]').appendTo(document.body);
+		$('<div class="res">').urlize(v,{
+			trunc:[10,10,true],
+			twitter:true
+		}).appendTo(document.body);
+	}
 }
 
 
@@ -98,16 +117,6 @@ div.error {
 
 <div id="msg"></div>
 <div id="err"></div>
-
-<textarea id="src" cols="80" rows="6" wrap="off">
-This area contains text with url &lt;b&gt; http://www.jquery.com &lt;/b&gt;
-and linebreaks.
-
-
-It's long URL https://very.very.very.looooooooong.url/path/to/long/long/long/long/?params=1&amp;params=2&amp;params=3 .
-long URL is truncated : https://12345678901234567890/12345677890/1234567890
-</textarea>
-<input type="button" value="set" onclick="testall()">
 
 
 </body>
