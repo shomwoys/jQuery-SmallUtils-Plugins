@@ -1,5 +1,5 @@
 /*
- * jQury URLize plugin
+ * jQury Utils plugin
  * 
  * The MIT License
  * 
@@ -30,18 +30,22 @@
  * $.typeOf() : better 'typeof'
  *   -> 'null','undefined','boolean','string','number','function','date','regexp','object'
  * 
- * var clusure = $.closure([arg1,arg2,...],thisObj,function(_binded_arg1,_binded_arg2,..., arg1,arg2){});
+ * var bound_func = $.closure([arg1,arg2,...],thisObj,function(_binded_arg1,_binded_arg2,..., arg1,arg2){});
+ * bound_func(arg2, arg2);
  * 
  * $.doLater(function(){...},delay).then(function(){success}).fail(function(ex){...};
  * $.doLaterWith([arg1,arg2,...],thisObj,function(_arg1,_arg2,...){...},delay).then(function(){success}).fail(function(ex){...};
  * 
  * $.resolve({a:{b:"resolved a.b value"}},"a.b")
  *   -> "resolved a.b
+ * var obj = {a:{b:"value"}};
+ * $.resolve(obj, "b", "modified value for a.b");
  * 
  * $.parseISO8601('1970-01-01T00:00:00Z')
  *   -> Date(0)
  * 
  * $.dateformat(new Date(0), 'yyyy/MM/dd HH:mm')
+ *   -> "1970/01/01 00:00"
  * 
  * $.numformat.comma3(1234.5678) -> '1,234.567'
  * 
@@ -153,7 +157,7 @@
 				
 				var name = res[1];
 				var isfunc = res[2] == '()';
-				var isarray = res[3] != undefined;
+				var isarray = (res[3] != undefined) && (res[3] != ''); // '' for IE7
 				var arraynum = parseInt(res[4],10);
 				
 				if (isfunc || isarray) {
