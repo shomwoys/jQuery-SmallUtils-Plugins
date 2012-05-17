@@ -205,9 +205,10 @@ jquery-datatmpl.js
 
 HTML DOMベースのテンプレートユーティリティ。
 
-    $(elem).dataTmpl(context, options)
+    $(elem).dataTmpl(context, options);
+    var tmpl = $.data(elem, 'DataTmpl');
     もしくは
-    var tmpl = new $.DataTmpl(target);
+    var tmpl = new $.DataTmpl(elem, options);
     tmpl.render(context);
 
 オブジェクトのプロパティ値を、対応するdata-tmpl属性をもつHTML要素に設定する。

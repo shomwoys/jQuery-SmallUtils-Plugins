@@ -205,10 +205,12 @@ jquery-datatmpl.js
 
 HTML DOM based template.
 
-    $(elem).dataTmpl(context, options)
+    $(elem).dataTmpl(context, options);
+    var tmpl = $.data(elem, 'DataTmpl');
     or
-    var tmpl = new $.DataTmpl(target);
+    var tmpl = new $.DataTmpl(elem, options);
     tmpl.render(context);
+    
 
 This tempalte mapped object values to HTML elements with 'data-tmpl' (as key of values).
 
