@@ -596,7 +596,9 @@
 		
 		dataTmpl : function(context, opts, _loop) {
 			return this.each(function(){
-				return (new DataTmpl(this, opts).render(context, _loop));
+				var datatmpl = new DataTmpl(this, opts);
+				$.data(this, 'DataTmpl', datatmpl);
+				return datatmpl.render(context, _loop);
 			});
 		}
 	
