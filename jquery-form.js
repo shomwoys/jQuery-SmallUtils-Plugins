@@ -107,7 +107,7 @@
 			 *    :
 			 *  }
 			 */
-			if ($(this).get(0).tagName.toUpperCase() !== "FORM") {
+			if ($(this).get(0).nodeName !== "FORM") {
 				throw 'formGet: target is not <form>';
 				return $(this);
 			}
@@ -137,7 +137,7 @@
 			 *  @param doClear : clear form before set : default true
 			 *  @param clearHidden : clera hidden input when clear form : default false
 			 */
-			if ($(this).get(0).tagName.toUpperCase() !== "FORM") {
+			if ($(this).get(0).nodeName !== "FORM") {
 				throw 'fromSet: target is not <form>';
 				return $(this);
 			}
@@ -184,7 +184,7 @@
 			 *    :
 			 *  });
 			 */
-			if ($(this).get(0).tagName.toUpperCase() !== "FORM") {
+			if ($(this).get(0).nodeName !== "FORM") {
 				throw 'serializeObject: target is not <form>';
 				return $(this);
 			}
@@ -273,7 +273,7 @@
 			 * 
 			*/
 			
-			if ($(this).get(0).tagName.toUpperCase() !== "FORM") {
+			if ($(this).get(0).nodeName !== "FORM") {
 				throw 'serializeObject: target is not <form>';
 				return $(this);
 			}

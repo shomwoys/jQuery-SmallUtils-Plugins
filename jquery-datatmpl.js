@@ -26,71 +26,119 @@
  * ********************************************************************
  * 
  * This plugin maps variables in JSON context to text/html/attributes of HTLM
- * elements. $(target).dataTmpl(contextObj, option)
+ * elements.
  * 
- * Target) context.VARNAME mapped to <target>...<elem data-tmpl="VARNAME"></elem>...</target> .
- * context.VARNAME.CHILDNAME mapped to <target>...<elem
- * data-tmpl="VARNAME.CHILDNAME"></elem>...</target>. context
- * ARRAY[x].CHILDNAME mapped to <target>...<elem data-tmpl="VARNAME:CHILDNAME"></elem>...</target>
- * and iterate array elements. context['@self'] affects target
+ *     $(target).dataTmpl(contextObj, option)
  * 
- * Extract) context.VARNAME is string or number: <elem
- * data-tmpl="VARNAME">${context.VARNAME|html escaped}</elem> context.VARNAME
- * is Date: <elem data-tmpl="VARNAME">${context.VARNAME|dateformatted string
- * yyyy/MM/dd HH:mm:ss}</elem> context.VARNAME is string and target is <a> and
- * <a> is empty: <a href="${context.VARNAME}"
- * target="_blank">${context.VARNAME|escaped}</a> context.VARNAME is string and
- * target is <a> and <a> is not empty: <a href="${context.VARNAME}"
- * target="_blank">Default Static String</a> context.VARNAME is string and
- * target is <img>: <img src="${context.VARNAME}"> context.VARNAME is Object:
- * when context.VARNAME has "@as_html", vars extracted to element attributes
- * without below: "@text" extracted as text content of element, "@html"
- * extracted as HTML content of element. <elem ${key1}=${value1}
- * ${key2}=${value2}>${@text or @html}</elem> "@style" set "style" attributes
- * (CSS) by object. "@style":{'font-size':'large', 'color':'#ccc' } when context
- * VARNAME don't have "@as_html": extract as child dataTmpl <elem><child-taget>...</child-target></elem>
- * context['@self'] affects target self <target>...</target>
- * $(target).dataTmpl({ '@self':{ '@as_html':true, attr:'attr value'}}); ->
- * <target attr="attr value">...</target>
+ * Target-Context mapping) 
  * 
- * Switches) data-tmpl="!context.VARNAME" enabled when context.VARNAME ==
- * false,[],{},0 or Inf or NaN,empty string(space chars only),null,undefined
- * data-tmpl="?context.VARNAME" enabled when context.VARNAME == true,[not
- * empty],{not empty},not 0
+ * context.VARNAME
+ *     <target>...<elem data-tmpl="VARNAME"></elem>...</target> .
+ * context.VARNAME.CHILDNAME
+ *     <target>...<elemdata-tmpl="VARNAME.CHILDNAME"></elem>...</target>.
+ * context.ARRAY[x].CHILDNAME
+ *     <target>...<elem data-tmpl="VARNAME:CHILDNAME"></elem>...</target>
+ *     and iterate array elements.
+ * context['@self'] affects target-self
  * 
- * Options) target: "target" attribute of <a> datetimeformat: "datetime format -
- * $.datetimeformat at jquery-utils.js" for Date number_comma: format Number to
- * comma separated (default true). filters:{} filter functions hash.
- * 'context.VARNAME':function(var, array_loop_counter1, context){ return [new
- * value]; }
+ * Context-Extract)
  * 
- * Restriction) elements for children must be in elements for parent. BAD: <elem
- * data-tmpl="context.OTHER1"></elem> <elem
- * data-tmpl="context.VARNAME.CHILDNAME"></elem> <elem
- * data-tmpl="context.OTHER2"></elem> GOOD: <elem data-tmpl="context.OTHER1"></elem>
- * <elem data-tmpl="context.VARNAME> <elem
- * data-tmpl="context.VARNAME.CHILDNAME"></elem> </elem> <elem
- * data-tmpl="context.OTHER2"></elem>
+ * 1. context.VARNAME is string, number or Date
+ *     to Generic Elements
+ *         string or number
+ *             <elem data-tmpl="VARNAME">${context.VARNAME|html escaped}</elem>
+ *         Date()
+ *             <elem data-tmpl="VARNAME">${context.VARNAME|dateformatted string}</elem>
  * 
- * Example) <div id="bookmarks" class="loading">
- * <p>
- * Link target is <a data-tmpl="link_url"></a>
- * </p>
- * <img data-tmpl="photo_link_url" witdh="100" height="100"> <div
- * data-tmpl="?bookmarks" class="bookmarks"> <div data-tmpl="bookmarks"> <span
- * data-tmpl="bookmarks:memo">bookmarks[].memo placeholder</span> <span
- * data-tmpl="bookmarks:time">bookmarks[].time placeholder</span> <a
- * data-tmpl="bookmarks:link"></a> <div> <div data-tmpl="paging"> <a
- * href="paging.prev_url" target="_self">Prev</a> <a href="paging.next_url"
- * target="_self">Next</a> </div> </div> <div data-tmpl="!bookmarks"
- * class="no_bookmarks"> No Bookmarks. </div> </div> <script> $(function(){
- * context = { link_url:'http://link.to/path',
- * photo_link_url:'http://link.to/img.gif' bookmarks:[ { memo:'memo1',
- * time:Date(....), link:{'@as_html':true, href:'http://link.to.bookmark/1',
- * '@text':'bookmark1' }}, { memo:'memo2', time:Date(....),
- * link:{'@as_html':true, href:'http://link.to.bookmark/1', '@text':'bookmark2'
- * }}, ], paging = { prev:'?p=1', next:'?p=3', cur:'' } };
- * $('#bookmarks').dataTmpl(context).removeClass('loading'); }); </script>
+ *     to <a>
+ *        when <a> is empty
+ *            <a href="${context.VARNAME}" target="_blank">${context.VARNAME|escaped}</a>
+ *        else
+ *            <a href="${context.VARNAME}" target="_blank">Static String</a>
+ * 
+ *     to <img>
+ *         <img>: <img src="${context.VARNAME}">
+ * 
+ * 2. context.VARNAME is Object:
+ *     has '@as_html'
+ *         extracted to element attributes.
+ *         special variables:
+ *             '@text' : text contents ($().text(xxx))
+ *             '@html' : html contents ($().html(xxx))
+ *             '@style : CSS attributes ($().css(obj))
+ *     else
+ *         generate child DataTmpl
+ *         and '@self' is extracted for target attributes.
+ * 
+ * Switches)
+ * 
+ * data-tmpl="!context.VARNAME"
+ *     enabled when context.VARNAME == false,[],{},0 or Inf or NaN,empty string(space chars only),null,undefined
+ * data-tmpl="?context.VARNAME"
+ *     enabled when context.VARNAME == true,[not empty],{not empty},not 0
+ * 
+ * Options)
+ * 
+ * target: "target" attribute of <a>
+ * datetimeformat: "datetime format - $.datetimeformat() at jquery-utils.js
+ * number_comma: format Number to comma separated (default true).
+ * filters:{} filter functions hash.
+ *    { 'context.VARNAME':function(var, array_loop_counter1, context){
+ *        return [filtered value];
+ *    }
+ * 
+ * Restriction)
+ * 
+ * elements for children must be in elements for parent.
+ *     BAD:
+ *         <elem data-tmpl="context.OTHER1"></elem>
+ *         <elem data-tmpl="context.VARNAME.CHILDNAME"></elem>
+ *         <elem data-tmpl="context.OTHER2"></elem>
+ *     GOOD:
+ *         <elem data-tmpl="context.OTHER1"></elem>
+ *         <elem data-tmpl="context.VARNAME>
+ *             <elem data-tmpl="context.VARNAME.CHILDNAME"></elem>
+ *         </elem>
+ *         <elem data-tmpl="context.OTHER2"></elem>
+ * 
+ * Example)
+ * 
+ * <div id="bookmarks" class="loading">
+ *     <p>Link target is <a data-tmpl="link_url"></a></p>
+ *     <img data-tmpl="photo_link_url" witdh="100" height="100">
+ *     <div data-tmpl="?bookmarks" class="bookmarks">
+ *         <div data-tmpl="bookmarks">
+ *             <span data-tmpl="bookmarks:memo">bookmarks[].memo placeholder</span>
+ *             <span data-tmpl="bookmarks:time">bookmarks[].time placeholder</span>
+ *             <a data-tmpl="bookmarks:link"></a>
+ *         <div>
+ *         <div data-tmpl="paging">
+ *             <a href="paging.prev_url" target="_self">Prev</a>
+ *             <a href="paging.next_url" target="_self">Next</a>
+ *         </div>
+ *     </div>
+ *     <div data-tmpl="!bookmarks" class="no_bookmarks"> No Bookmarks.</div>
+ * </div>
+ * 
+ * <script>
+ * $(function(){
+ *     var context = {
+ *         link_url:'http://link.to/path',
+ *         photo_link_url:'http://link.to/img.gif',
+ *         bookmarks:[
+ *             { memo:'memo1',
+ *               time:Date(....),
+ *               link:{'@as_html':true, href:'http://link.to.bookmark/1', '@text':'bookmark1' }
+ *              },
+ *             { memo:'memo2',
+ *               time:Date(....),
+ *               link:{'@as_html':true, href:'http://link.to.bookmark/1', '@text':'bookmark2'}
+ *              }
+ *         ],
+ *         paging = { prev:'?p=1', next:'?p=3', cur:'' }
+ *     };
+ *     $('#bookmarks').dataTmpl(context).removeClass('loading'); });
+ * </script>
  * 
  * DataTmpl Class:
  * 
@@ -109,25 +157,38 @@
  * shorthand for spliceRows:
  * 
  * target.insertRows("<key for array>", position, insert_array);
- * target.deleteRows("<key for array>", delete_count); target.appendRows("<key
- * for array>", insert_array); target.prependRows("<key for array>",
- * insert_array);
+ * target.deleteRows("<key for array>", delete_count);
+ * target.appendRows("<key for array>", insert_array);
+ * target.prependRows("<key for array>", insert_array);
  * 
  * Current context is target.context.
  * 
- * target.selectRows("<key for array>", position, count) returns jQuery oject
- * for rows.
+ * target.selectRows("<key for array>", position, count)
+ * returns jQuery oject for rows.
  * 
- * Example: <target> <title data-tmpl="title">context.title placeholder</title>
- * <row data-tmpl="row"><san data-tmpl="row:col1">context.row[].col1
- * placeholder</span></row> </target> <script> $(function(){ var target = new
- * DataTmpl($("target")); target.render({ 'title':'Title',
- * row:[{col1:"col1"},{col1:"col2"},{col1:"col3"}] }); // update all elements
- * for cotext.row target.update({ row:[{col1:"new-col1"},{col1:"new col2"}] });
+ * Example:
  * 
- * target.appendRows('row', { col1:"appended" }); target.prependRows('row', {
- * col1:"prepended" }); : target.selectRows('row', 3, 1).fadeOut(function(){
- * target.deleteRows('row', 3, 1); });
+ * <target>
+ *     <title data-tmpl="title">context.title placeholder</title>
+ *     <row data-tmpl="row">
+ *         <span data-tmpl="row:col1">context.row[].col1 placeholder</span>
+ *     </row>
+ * </target>
+ * <script>
+ * $(function(){
+ *     var target = new DataTmpl($("target"));
+ *     target.render({
+ *         'title':'Title',
+ *         row:[{col1:"col1"},{col1:"col2"},{col1:"col3"}]
+ *     });
+ *     // update all elements for cotext.
+ *     row target.update({ row:[{col1:"new-col1"},{col1:"new col2"}] });
+ * 
+ *     target.appendRows('row', { col1:"appended" });
+ *     target.prependRows('row', { col1:"prepended" });
+ *     target.selectRows('row', 3, 1).fadeOut(function(){
+ *         target.deleteRows('row', 3, 1);
+ *     });
  * 
  * }); </script>
  * 
@@ -228,7 +289,7 @@
 			// console.log(target[0], $.data(target[0], 'context'));
 		}
 		
-		var tag = target[0].tagName.toLowerCase();
+		var tag = target[0].nodeName;
 		var t = $.typeOf(v);
 		var _v = v;
 		
@@ -248,7 +309,7 @@
 			}
 		case 'string':
 			switch (tag) {
-			case 'a':
+			case 'A':
 				if (target.text() != '' || target.children().length > 0) {
 					_v = {
 					    '@as_html' : true,
@@ -262,13 +323,13 @@
 					};
 				}
 				break;
-			case 'img':
+			case 'IMG':
 				_v = {
 				    '@as_html' : true,
 				    'src' : v
 				};
 				break;
-			case 'input':
+			case 'INPUT':
 				switch (target.attr('type') || '') {
 				/*
 				 * case 'radio': if (target.val() === _v) { _v = {
@@ -300,8 +361,8 @@
 					};
 				}
 				break;
-			case 'select':
-			case 'textarea':
+			case 'SELECT':
+			case 'TEXTAREA':
 				_v = {
 				    '@as_html' : true,
 				    '@val' : v
@@ -469,7 +530,7 @@
 					}
 					target.attr('data-tmpl-arr', ++_cnt);
 					/*
-					 * if (target[0].tagName.toUpperCase() == 'OPTION'){
+					 * if (target[0].nodeName == 'OPTION'){
 					 * target.parent('select').val(''); }
 					 */
 					break;
