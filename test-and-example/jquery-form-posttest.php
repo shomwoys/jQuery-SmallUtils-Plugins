@@ -94,16 +94,15 @@ try {
 	
 	foreach ( $params as $label => $specs ) {
 		$param = $specs[0];
-		$reqired_count = $specs[1];
+		$requied_count = $specs[1];
 		$regex = $specs[2];
 		$errmsg = $specs[3];
 		$v = $_REQUEST[$param];
 		if (is_null($v)) {
 			if ($required_count) {
 				$errors[$param] = $errmsg;
-				continue;
 			}
-			$v = '';
+			continue;
 		}
 		if (!is_array($v)) {
 			$v = array($v);
