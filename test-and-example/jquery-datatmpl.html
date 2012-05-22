@@ -123,6 +123,15 @@ $(function(){
 				cc1:1,
 				cc2:2
 			}
+		},
+		self:{
+			'@self':{
+				'@as_html':true,
+				'@style':{
+					'background':'#fcc'
+				},
+				'@text':'self: background = #fcc'
+			}
 		}
 	};
 	$('#target1').dataTmpl(context);
@@ -160,9 +169,12 @@ $(function(){
 			<div data-tmpl="obj.child3.cc2"></div>
 		</div>
 	</div>
+	
 	<div data-tmpl="emptyobj">obj placeholder
 		<div data-tmpl="emptyobj.child1">empty</div>
 	</div>
+	
+	<div data-tmpl="self"></div>
 </div>
 
 <h3>Switch</h3>
@@ -282,7 +294,8 @@ $(function(){
 			]
 		  }
 		],
-		arr3:[]
+		arr3:[],
+		arr5:['a5[0]','a5[1]','a5[2]']
 	};
 	$('#target2').dataTmpl(context);
 	
@@ -314,6 +327,8 @@ $(function(){
 		</div>
 		<div data-tmpl="!arr4">arr4 is empty</div>
 	</div>
+	<div>arr5</div>
+	<span data-tmpl="arr5"></span>
 </div>
 
 <h3>Options - dateformat,number_comma,filters</h3>
@@ -339,6 +354,9 @@ $(function(){
 			  { data:'data3' },
 			  { data:'data4' }
 			],
+		arr4:['a','b','c'],
+		arr5:[1,2,3],
+		arr6:[new Date(0), new Date(1000), new Date()],
 		swf:'http://www.macromediahelp.com/flash/simple_flash_and_xml_sample/xml_sample.swf'
 
 	};
@@ -377,16 +395,21 @@ $(function(){
 </script>
 
 <div id="target3" class="tmpl">
-	<div data-tmpl="arr1">
+	<div data-tmpl="arr1">arr1
 		<span data-tmpl="arr1:date"></span>
 		/
 		<span data-tmpl="arr1:num"></span>
 	</div>
-	<div data-tmpl="arr2">
+	<div data-tmpl="arr2">arr2
 		<div data-tmpl="arr2:num"></div>
 	</div>
-	<div data-tmpl="arr3">
+	<div data-tmpl="arr3">arr3
 		<div data-tmpl="arr3:data"></div>
+	</div>
+	<div>
+		arr4: <span data-tmpl="arr4"></span><br>
+		arr5: <span data-tmpl="arr5"></span><br>
+		arr6: <span data-tmpl="arr6"></span>
 	</div>
 	<div data-tmpl="swf"></div>
 </div>
