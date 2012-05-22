@@ -25,7 +25,7 @@
 			var html = toHtml(text);
 			html = opts.linebreaksbr ? html.replace(/(\r\n|\r|\n)/g,'<br>') : html;
 			// html = html.replace(/\b((https?|ftp|file):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/ig,
-			html = html.replace(/(^|<br>|\s|\uFF03)(@([a-zA-Z0-9_]+)|#([a-zA-Z0-9_\u3041-\u3094\u309D-\u309E\u30A1-\u30FA\u30FC-\u30FE\u3400-\uD7FF\uFF10-\uFF19\uFF20-\uFF3A\uFF41-\uFF5A\uFF66-\uFF9E]+)|(https?|ftp|file):\/\/[-a-zA-Z0-9+&@#\/%?=~_|!:,.;]*[-a-zA-Z0-9+&@#\/%=~_|])/mg,
+			html = html.replace(/(^\.?|<br>|\s|\uFF03)(@([a-zA-Z0-9_]+)|#([a-zA-Z0-9_\u3041-\u3094\u309D-\u309E\u30A1-\u30FA\u30FC-\u30FE\u3400-\uD7FF\uFF10-\uFF19\uFF20-\uFF3A\uFF41-\uFF5A\uFF66-\uFF9E]+)|(https?|ftp|file):\/\/[-a-zA-Z0-9+&@#\/%?=~_|!:,.;]*[-a-zA-Z0-9+&@#\/%=~_|])/mg,
 				function(all, pre, match, match2){
 					var html = match, h = html.substring(0,1);
 					if (h === '@' || h === '#'){
