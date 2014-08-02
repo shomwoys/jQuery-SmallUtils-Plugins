@@ -10,7 +10,10 @@
 <script src="js/jquery.json-2.3.js"></script>
 
 
+<script src="../jquery-utils.js"></script>
 <script src="../jquery-form.js"></script>
+<script src="../jquery-form-widget.js"></script>
+<link rel="stylesheet" href="../jquery-form-widget.css">
 <script>
 
 function msg(str, obj){
@@ -34,7 +37,7 @@ $(function(){
 	
 	// formPost
 	
-	$("form#posttest").submit(function(){
+	$("form#posttest").syncLabels().submit(function(){
 		try {
 			$(this).formPost().done(function(res){
 				alert('post success.');
@@ -55,6 +58,14 @@ $(function(){
 		}
 		return false;
 	}).find('.error_msg').css('display','none');
+	
+	$("form#synclabel-test").syncLabels();
+	
+	$("form#synclabel-test input").on('change', function(ev){
+		console.log($(ev.currentTarget));
+		// alert('synclabel:' + $(this).attr('type') + ':' + $(this).attr('name') + '='+ $(this).attr('value') + ':' + this.checked);
+	});
+	
 });
 
 </script>
@@ -82,6 +93,13 @@ form {
 form.posting { cursor:wait; background:#ccc; color:#888; }
 form span.error_msg { background-color:#fee; color:#822; padding:0.5em; margin:0.5em; }
 
+label.checked {
+	background: #444; color: white;
+}
+label.notchecked {
+	background: #ccc;
+}
+
 </style>
 </head>
 <body>
@@ -91,8 +109,11 @@ form span.error_msg { background-color:#fee; color:#822; padding:0.5em; margin:0
 
 <form id="src">
 hidden:<input type="hidden" name="hidden" value="hidden input"><br>
-text:<input type="text" name="text" value="text input"><br>
-passwd:<input type="password" name="password" value="password input"><br>
+text:<input type="text" name="text" value="text input" placeholder="Text Placeholder"><br>
+passwd:<input type="password" name="password" value="password input" placeholder="Password Placeholder"><br>
+url:<input type="url" name="url" value="http://url.place.holder/path/to/file" placeholder="URL Placeholder"><br>
+email:<input type="email" name="email" value="some@email.account.com" placeholder="Date Placeholder"><br>
+date:<input type="date" name="date" value="2000-01-01" placeholder="Date Placeholder"><br>
 
 checkboxes:
 <input type="checkbox" name="checkbox" value="checkbox1">
@@ -111,7 +132,7 @@ radios:
 <br>
 
 textarea:<br>
-<textarea name="textarea">textarea strings
+<textarea name="textarea" placeholder="Textarea Placeholder">textarea strings
 textarea strings</textarea>
 <br>
 
@@ -150,47 +171,111 @@ buttons:<br>
 
 <hr>
 
+<h2>Post Test</h2>
+
 <style>
 #posttest .error { background:#fcc; color:#400; font-weight:bold; }
 #posttest.posting { background:#ccc; }
 </style>
 <form id="posttest" method="post" action="jquery-form-posttest.php">
-	<label>not required</label><input name="text">
+	<label>not required</label><input name="text" placeholder="not required text">
 		<span class="error_msg" data-for="text"></span>
 	<br>
-	<label>required URL</label><input name="url">
+	<label>required URL</label><input name="url" placeholder="required URL">
 		<span class="error_msg" data-for="url"></span>
 	<br>
-	<label>required email</label><input name="email">
+	<label>required email</label><input name="email" placeholder="required email">
 		<span class="error_msg" data-for="email"></span>
 	<br>
-	<label>required email confirm</label><input name="email2">
+	<label>required email confirm</label><input name="email2" placeholder="required email (confirm)">
 		<span class="error_msg" data-for="email2"></span>
 	<br>
-	radios
+	radios (required) - label connected
 	<label><input type="radio" name="radio" value="rad1">radio1</label>
 	<label><input type="radio" name="radio" value="rad2">radio2</label>
 	<label><input type="radio" name="radio" value="rad3">radio3</label>
 	<label><input type="radio" name="radio" value="rad4">radio4</label>
 		<span class="error_msg" data-for="radio"></span>
 	<br>
-	checboxes (not required)
+	checkboxes (not required) - label connected
 	<label><input type="checkbox" name="checkbox" value="cb1">checkbox1</label>
 	<label><input type="checkbox" name="checkbox" value="cb2">checkbox2</label>
 	<label><input type="checkbox" name="checkbox" value="cb3">checkbox3</label>
 	<label><input type="checkbox" name="checkbox" value="cb4">checkbox4</label>
 		<span class="error_msg" data-for="checkbox"></span>
 	<br>
-	checboxes (required 2+ checked)
+	checkboxes (required 2+ checked)
 	<label><input type="checkbox" name="checkbox2" value="cb1">checkbox1</label>
 	<label><input type="checkbox" name="checkbox2" value="cb2">checkbox2</label>
 	<label><input type="checkbox" name="checkbox2" value="cb3">checkbox3</label>
 	<label><input type="checkbox" name="checkbox2" value="cb4">checkbox4</label>
 		<span class="error_msg" data-for="checkbox2"></span>
 	<br>
+	<style>
+		input[name="radio_hidden"] { display: none; }
+	</style>
+	radios (required) - label connected - radio hidden
+	<label><input type="radio" name="radio_hidden" value="rad1">radio1<img src="http://lorempixel.com/32/32"></label>
+	<label><input type="radio" name="radio_hidden" value="rad2">radio2<img src="http://lorempixel.com/32/32"></label>
+	<label><input type="radio" name="radio_hidden" value="rad3">radio3<img src="http://lorempixel.com/32/32"></label>
+	<label><input type="radio" name="radio_hidden" value="rad4">radio4<img src="http://lorempixel.com/32/32"></label>
+		<span class="error_msg" data-for="radio"></span>
+	<br>
 	<input type="submit">
 </form>
 
+<h2>Placeholders</h2>
+<style>
+input.placeholder, textarea.placeholder { color: #faa; }
+::-webkit-input-placeholder { color: #afa; }
+:-moz-placeholder { color: #aaf; }
+</style>
+<form id="placeholder-test">
+<input name="notype" placeholder="Notype Placeholder">
+<input type="text"  name="text"  placeholder="Text Placeholder">
+<input type="date"  name="date"  placeholder="Date Placeholder">
+<input type="url"   name="url"   placeholder="URL Placeholder">
+<input type="email" name="email" placeholder="E-Mail Placeholder">
+<input type="password" name="password" placeholder="Password Placeholder">
+<textarea name="textarea" placeholder="Textarea Placeholder"></textarea>
+</form>
+<input type="button" value="setForm(clear)" onclick="$('#placeholder-test').formSet({})">
+<input type="button" value="setForm(not clear)" onclick="$('#placeholder-test').formSet({}, false)">
+<input type="button" value="setForm" onclick="$('#placeholder-test').formSet({notype:'notype', text:'text', date:'1970-01-01', url:'http://www.exampele.com', email:'mail@example.com', textarea:'textarea'})">
+<input type="button" value="val" onclick="$('#placeholder-test :input').val('aaa')">
+
+<h2>syncLabel</h2>
+<style>input[name="c"], input[name="d"] { display:none; }</style>
+<form id="synclabel-test">
+<label><input name="a" type="checkbox" value="1">check 1</label>
+<label><input name="a" type="checkbox" value="2">check 2</label>
+<label><input name="a" type="checkbox" value="3">check 3</label>
+<label><input name="a" type="checkbox" value="4">check 4</label>
+<label><input name="a" type="checkbox" value="5">check 5</label>
+<label><input name="b" type="radio" value="1">radio 1</label>
+<label><input name="b" type="radio" value="2">radio 2</label>
+<label><input name="b" type="radio" value="3">radio 3</label>
+<label><input name="b" type="radio" value="4">radio 4</label>
+<label><input name="b" type="radio" value="5">radio 5</label>
+<br>
+<label><input name="c" type="checkbox" value="1">check 1</label>
+<label><input name="c" type="checkbox" value="2">check 2</label>
+<label><input name="c" type="checkbox" value="3">check 3</label>
+<label><input name="c" type="checkbox" value="4">check 4</label>
+<label><input name="c" type="checkbox" value="5">check 5</label>
+<label><input name="d" type="radio" value="1">radio 1</label>
+<label><input name="d" type="radio" value="2">radio 2</label>
+<label><input name="d" type="radio" value="3">radio 3</label>
+<label><input name="d" type="radio" value="4">radio 4</label>
+<label><input name="d" type="radio" value="5">radio 5</label>
+</form>
+
+<h2>form widget</h2>
+<form>
+	<label class="checkbox-switch">Checkbox switch <input type="checkbox"></label>
+	<input type="text" value="toggle editable" data-toggle-editable>
+	<textarea data-toggle-editable>Toggle Editable</textarea>
+</form>
 
 </body>
 </html>

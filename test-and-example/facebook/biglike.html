@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Insert title here</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="viewport" content="width=128,initial-scale=8.0,user-scalable=no,maximum-scale=8.0,minimum-scale=8.0">
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.js"></script>
+
+<!-- 
+FB login window 450x278 + 450x43 = 450x321
+ -->
+<style>
+.fb-like { /*
+	-webkit-transform-origin: 0 0;
+	-webkit-transform: scale(6, 6);
+	transform-origin: 0 0;
+	transform: scale(6, 6);
+/*	image-rendering: optimizeSpeed; /* Legal fallback                 */
+	/*	image-rendering: -moz-crisp-edges; /* Firefox                        */
+	/*	image-rendering: -o-crisp-edges; /* Opera                          */
+	/*	image-rendering: -webkit-optimize-contrast;
+	/* Chrome (and eventually Safari) */
+	/*	image-rendering: optimize-contrast;
+	/* CSS3 Proposed                  */
+	/*	-ms-interpolation-mode: nearest-neighbor; /* IE8+ */
+	
+}
+
+body {
+	margin: 0;
+	padding: 0;
+	width: 128px;
+	height: 96px;
+	overflow: hidden;
+}
+
+#all {
+	width: 128px;
+	height: 96px;
+	background: #fcc;
+	padding: 0px;
+	text-align: center;
+	overflow: hidden;
+}
+
+#all iframe {
+	display: block;
+	position: relative;
+	margin: auto;
+	margin-top: 10px;
+}
+</style>
+<script>
+$(function(){
+	var APP_ID='394335443951710';
+	var scope = 'publish_stream,publish_checkins'
+	window.fbAsyncInit = function() {
+		FB.init({
+			appId : APP_ID,
+			cookie : true,
+			status : true,
+			xfbml : true,
+			frictionlessRequests : true
+		});
+		
+		var authorize_redirected = false;
+		if (location.href.split('?')[1].match(/^code=/)){
+			authorize_redirected = true;
+		}
+		
+		$('#fb-login').hide();
+		$('#fb-authorize').hide();
+		FB.getLoginStatus(function(res){
+			if (res.status === 'connected') {
+				//
+			} else if (res.status === 'not_authorized') {
+				$('#fb-authorize').fadeIn();
+			} else {
+				$('#fb-login').fadeIn();
+			}
+		});
+		
+		FB.Event.subscribe('edge', function() {
+			FB.logout();
+		});
+	};
+	(function(d, s, id) {
+		var js, fjs = d.getElementsByTagName(s)[0];
+		if (d.getElementById(id))
+			return;
+		js = d.createElement(s);
+		js.id = id;
+		js.src = "//connect.facebook.net/ja_JP/all.js"; //#xfbml=1"; //&appId=250964778314148";
+		fjs.parentNode.insertBefore(js, fjs);
+	}(document, 'script', 'facebook-jssdk'));
+	
+	function AuthorizeSameWindow(){
+		location.href = 'https://graph.facebook.com/oauth/authorize?client_id='+APP_ID+'&scope='+scope+'&redirect_uri='+location.href.split('?')[0];
+	}
+});
+</script>
+</head>
+<body>
+  <div id="fb-root"></div>
+  <div id="all">
+    <a href="#" onclick="loginSameWindow()" id="fb-login">FB|Login</a>
+    <div class="fb-like" data-send="false" data-layout="box_count" data-width="80" data-show-faces="false"></div>
+    <!-- 
+    <iframe src="//www.facebook.com/plugins/like.php?href=htp%3A%2F%2Fwww.example.com&amp;send=false&amp;layout=box_count&amp;width=450&amp;show_faces=false&amp;action=like&amp;colorscheme=light&amp;font&amp;height=90&amp;appId=372140386129946" scrolling="no" frameborder="0" style="border:none; overflow:hidden; width:75px; height:90px;" allowTransparency="true"></iframe>
+     -->
+  </div>
+</body>
+</html>

@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>FB Auth Redirect</title>
+</head>
+<body>
+Auth Redirected.<br>
+<script>
+var redirect_url = location.href.split('?')[0].replace(/\/[^\/]*$/, '/') + 'facebook.html';
+location = redirect_url;
+</script>
+</body>
+</html>

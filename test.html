@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width">
+<style>.clearfix{*zoom:1;}.clearfix:before,.clearfix:after{display:table;line-height:0;content:"";}.clearfix:after{clear:both;}#resource{width:640px;margin:0 auto;}</style>
+</head><body>
+
+<form method="post" action="/">
+<fieldset>
+<label>text: <input type="text" name="text"></label>
+<br>
+<label>datetime: <input type="date" name="date"></label>
+<br>
+<input type="submit">
+</fieldset>
+</form>
+<textarea></textarea>
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.1/jquery.min.js"></script>
+<script src="jquery-utils.js"></script>
+<script src="jquery-form.js"></script>
+<script>
+$(function(){
+	$(document).on('focus', 'input[type="date"]', function(ev){
+		$(this).val($(this).val().replace(/^(\d+)-(\d)-(\d+)$/, '$1-0$2-$3').replace(/^(\d+)-(\d+)-(\d)$/, '$1-$2-0$3'))
+	});
+	$(document).on('change focus keyup keydown blur', 'input[type="date"]', function(ev){
+		$('textarea').val(ev.type);
+	});
+	$('form').on('submit', function(ev){
+		ev.preventDefault();
+		alert('onsubmit');
+		/*
+		$('form').formPost({
+			url: 'test.html'
+		}).then(function(){alert('success');}).fail(function(){alert('error');});
+		*/
+		return false;
+	});
+});
+
+</script>
+
+</body></html>

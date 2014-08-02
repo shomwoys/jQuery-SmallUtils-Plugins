@@ -1,0 +1,134 @@
+
+/*
+label.checkbox input[type="checkbox"]{
+	display: none;
+}
+[ ONœ]
+   [œOFF]
+[     ]
+*/
+
+.checkbox-widget {
+	display: inline-block;
+	background-color: white;
+	color: #333;
+	
+	border: 1px solid #ccc;
+	
+	overflow: hidden;
+	position: relative;
+	vertical-align: middle;
+	
+	-webkit-border-radius: 0.6em;
+	-moz-border-radius: 0.6em;
+	-ms-border-radisu: 0.6em;
+	border-radius: 0.6em;
+	
+	line-height: 1em;
+	padding: 0;
+	cursor: default;
+	
+	width: 3.5em;
+}
+
+
+.checkbox-widget > .checkbox-widget-inner {
+	white-space: nowrap;
+	position: relative;
+	
+	-webkit-transition: left 300ms ease 0;
+	-moz-transition: left 300ms ease 0;
+	-ms-transition: left 300ms ease 0;
+	transition: left 300ms ease 0;
+	
+	vertical-align: middle;
+	
+	line-height: 1em;
+	left: -2.5em;
+}
+
+label.checked .checkbox-widget > .checkbox-widget-inner {
+	left: 0;
+	vertical-align: top;
+}
+
+.checkbox-widget > .checkbox-widget-inner > * {
+	-webkit-box-sizing: border-box;
+	-moz-box-sizing: border-box;
+	-ms-box-sizing: border-box;
+	box-sizing: border-box;
+	height: 1em;
+	vertical-align: top;
+}
+
+.checkbox-widget > .checkbox-widget-inner > .checkbox-on,
+.checkbox-widget > .checkbox-widget-inner > .checkbox-off {
+	display: inline-block;
+	text-align: center;
+	position: relative;
+	width: 3em;
+}
+
+.checkbox-widget > .checkbox-widget-inner > .checkbox-on > span,
+.checkbox-widget > .checkbox-widget-inner > .checkbox-off > span {
+	font-size: 80%;
+	line-height: 0.9;
+}
+
+.checkbox-widget > .checkbox-widget-inner > .checkbox-handle {
+	display: inline-block;
+	
+	background-color: white;
+	
+	-webkit-border-radius: 50%;
+	-moz-border-radius: 50%;
+	-ms-border-radius: 50%;
+	border-radius: 50%;
+	border: 1px solid #888;
+	
+	position: relative;
+	
+	width: 1em;
+	
+	margin-left: -0.5em;
+	margin-right: -0.5em;
+	
+}
+
+.checkbox-widget > .checkbox-widget-inner > .checkbox-on {
+	padding-right: 0.5em;
+	padding-left: 1px;
+	
+	color: white;
+}
+.checkbox-widget > .checkbox-widget-inner > .checkbox-off {
+	padding-left: 0.5em;
+	padding-right: 1px;
+}
+
+label > .checkbox-widget > .checkbox-widget-inner > .checkbox-on {
+	-webkit-transition: background-color 300ms ease 0;
+	-moz-transition: background-color 300ms ease 0;
+	-ms-transition: background-color 300ms ease 0;
+	transition: background-color 300ms ease 0;
+}
+
+label.checked > .checkbox-widget > .checkbox-widget-inner > .checkbox-on {
+	background: #2ecc71;
+	color: white;
+}
+
+label.checkbox-switch input[type="checkbox"] {
+	display: none;
+}
+
+/**********/
+
+[data-toggle-editable][readonly] {
+	border: none;
+	background: inherit;
+}
+
+.toggle-editable {
+	cursor: normal;
+}

@@ -1,0 +1,847 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Twitter Home Timeline</title>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.js"></script>
+<script src="http://ajax.googleapis.com/ajax/libs/swfobject/2.2/swfobject.js"></script>
+
+<script src="../../jquery-utils.js"></script>
+<script src="../../jquery-urlize.js"></script>
+<script src="../../jquery-datatmpl.js"></script>
+<link rel="stylesheet" href="../../jquery-datatmpl.css">
+
+<script src="../../jquery-form.js"></script>
+
+<script src="js/twitter.js"></script>
+
+<script src="../js/jquery.json-2.3.js"></script>
+<script src="../js/jquery.easing.1.3.js"></script>
+<script src="../js/jquery.vgrid.1.8.js"></script>
+
+
+<style>
+div.linkhover {
+	position: absolute;
+	border: 1px solid #888;
+	border-radius: 5px;
+	background: rgba(240, 240, 240, 0.9);
+	bottom: 0;
+	left: 0;
+	padding: 5px;
+	min-width: 100px;
+	max-width: 450px;
+	overflow: hidden;
+	font-size: 80%;
+	color: black;
+	box-shadow: 3px 3px 5px #888;
+}
+
+div.linkhover img { /*
+	position: relative;
+	display: block;
+	margin: 5px auto;
+	*/
+	float: left;
+	margin: 10px;
+	max-height: 150px;
+	max-width: 150px;
+	margin: 10px;
+}
+
+img.spinner {
+	display: none;
+}
+
+.loading {
+	content: "Loading";
+	opacity: 1;
+	width: 20px;
+	height: 20px;
+}
+
+.loading img.spinner {
+	display: block;
+	float: none;
+}
+
+.linkhover .related_links {
+	position: relative;
+	width: 450px;
+}
+
+.linkhover .related_links a {
+	display: block;
+	width: 100%;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+</style>
+
+<script>
+	function getlinkinfo(url) {
+		return $.ajax({
+			url : 'getlinkinfo.php',
+			dataType : 'jsonp',
+			data : {
+				_u : url
+			},
+			cache : true
+		}).promise();
+	}
+
+	function getrelatedlinks(url, title) {
+		return $.ajax({
+			url : 'getrelatedlinks.php',
+			dataType : 'jsonp',
+			data : {
+				_u : url,
+				_t : title
+			},
+			cache : true
+		}).promise();
+	}
+
+	function _getlinkinfo(url) {
+		return $.Deferred(function(_d) {
+			$.ajax({
+				url : 'getlinkinfo.php',
+				dataType : 'jsonp',
+				data : {
+					_u : url
+				},
+				cache : true
+			}).then(function(res) {
+				if (res.error) {
+					_d.reject(res);
+					return;
+				}
+				if (!res.title) {
+					_d.resolve(res);
+				}
+				$.ajax({
+					url : 'getrelatedlinks.php',
+					dataType : 'jsonp',
+					data : {
+						_u : res.url,
+						_t : res.title
+					},
+					cache : true
+				}).then(function(res2) {
+					if (res2.error) {
+						_d.reject(res2);
+						return;
+					}
+					if (res2.links && res2.links.Result) {
+						res.related_links = res2.links.Result;
+					}
+					_d.resolve(res);
+				}).fail(function(res) {
+					_d.reject({
+						ajaxerror : res
+					});
+				});
+			}).fail(function(res) {
+				_d.reject({
+					ajaxerror : res
+				});
+			});
+		}).promise();
+	}
+
+	function setLinkHover(elem) {
+		elem
+			.each(function() {
+				var _self = $(this);
+				var h = _self.text().substring(0, 1);
+				if (h == '#' || h == '@') {
+					return;
+				}
+				_self
+					.hover(
+						function() {
+							var hover = $(this).data('hover');
+							if (hover !== undefined) {
+								if (hover) {
+									hover.stop().fadeIn(200);
+								}
+							} else {
+								hover_anchor = $('<span style="position:relative; width:0;height:0;top:-1.5em;">');
+								hover =
+									$('<div class="linkhover loading">').append(
+										'<img src="img/spinner.gif" class="spinner">').stop().fadeIn(200);
+								_self.before(hover_anchor.append(hover)).data('hover', hover);
+								_self.before('&zwj;');
+								// _self.css('position', 'relative').append(hover).data('hover', hover);
+								hover_anchor.hover(function() {
+									hover.stop().fadeIn();
+								}, function() {
+									hover.stop().fadeOut();
+								});
+								getlinkinfo(_self.attr('href'))
+									.then(
+										function(res) {
+											var info = res;
+											var img, title;
+											if (info.og && info.og.image) {
+												img = info.og.image;
+											} else if (info.imgs) {
+												img = info.imgs[0];
+											}
+											if (info.og && info.og.title) {
+												title = info.og.title;
+											} else {
+												title = info.title || info.url;
+											}
+											hover.empty();
+											if (img) {
+												hover.append($("<img>").attr('src', img)).error(function() {
+													$(this).remove();
+												});
+											}
+											hover.append($('<div>').text(title));
+											
+											if (title != info.url) {
+												
+												var related_links =
+													$('<div class="related_links loading"><img src="img/spinner.gif" class="spinner"></div>');
+												hover.append(related_links);
+												getrelatedlinks(res.url, res.title)
+													.then(
+														function(res) {
+															if (res.systemerror) {
+																console.log(res);
+																related_links.remove();
+																return;
+															}
+															if (!res.links || !res.links.Result) {
+																related_links.remove();
+																return;
+															}
+															related_links.removeClass('loading');
+															related_links.empty();
+															related_links
+																.append($(
+																	'<div class="query" style="overflow:hidden;text-overflow:ellipsis;">')
+																	.text(res.query));
+															$.each(res.links.Result, function(i, v) {
+																related_links.append($('<a target="_blank">').attr(
+																	'href', v.Url).html(v.Title));
+															});
+														}).fail(function(res) {
+														console.log(res);
+														related_links.remove();
+													});
+											}
+											
+										}).fail(function(res) {
+										_self.data('hover').stop().fadeOut(200);
+										_self.data('hover', $());
+									}).always(function(res) {
+										_self.data('hover').removeClass('loading');
+									});
+							}
+						}, function() {
+							_self.data('hover').stop().fadeOut(200);
+						});
+			});
+	}
+
+	var thumbs =
+		{
+			'https?:\\\/\\\/twitpic\\\.com\\\/(\\w+)' : 'https://twitpic.com/show/thumb/$1', // twitpic
+			'https?:\\\/\\\/f\\\.hatena\\\.ne\\\.jp/((\\w)\w*)/(\d{8})(\d+)' : 'https://img.f.hatena.ne.jp/images/fotolife/$2/$1/$3/$3$4:thumbnail', // hatena
+			'https?:\\\/\\\/yfrog\\\.com/(\\w+)' : 'https://yfrog.com/$1.th.jpg', // yfrog
+			//'https?:\\\/\\\/bctiny\\\.com\\\/p(\\w+)':function(v){ return 'https://images.bcphotoshare.com/storages/'+parseInt(v, 36)+'/thumbnail.jpg' },
+			'https?:\\\/\\\/img\\\.ly\\\/(\\w+)' : 'http://img.ly/show/thumb/$1', // img.ly : TODO no ssl?
+			'https?:\\\/\\\/(?:www\\\.youtube\\\.com\\\/watch\\\?v=|youtu\\\.be)\\\/([a-zA-Z0-9_-]+)' : 'https://i.ytimg.com/vi/$1/default.jpg', // Yotube 
+			'https?:\\\/\\\/instagr\\\.am\\\/p\\\/([a-zA-Z0-9_-]+)' : 'https://instagr.am/p/$1/media/?size=t', // Instagram
+			'https?:\\\/\\\/photozou\\\.jp\\\/photo\\\/show\\\/(\\d+)\\\/(\\d+)' : 'http://photozou.jp/p/thumb/$2', // PhotoZou : TODO no ssl?
+			'https?:\\\/\\\/p\\\.twipple\\\.jp\\\/(\\w)(\\w)(\\w)(\\w)(\\w)' : 'http://p.twipple.jp/data/$1/$2/$3/$4/$5_s.jpg', // twipple
+			'https?:\\\/\\\/nico\\\.ms\\\/[a-z][a-z](\\d+)' : function(a, v) {
+				return 'http://tn-skr' + (parseInt(v) % 4 + 1) + '.smilevideo.jp/smile?i=' + v;
+			} // nico : TODO no ssl?
+		};
+	function extractThumbs(text) {
+		var pics = [];
+		$.each(thumbs, function(k, rep) {
+			var regex = new RegExp(k, 'g');
+			var m = text.match(regex);
+			if (m) {
+				$.each(m, function(i, v) {
+					pics.push({
+						link : v,
+						img : v.replace(regex, rep)
+					});
+				});
+			}
+		});
+		return pics;
+	}
+
+	var tw;
+	
+	function post_reply(elem) {
+		var status = $(elem).parents('.status');
+		var context = $.data(status[0], 'context');
+		var form = status.find('.reply');
+		if (!form[0]) {
+			form = $('#tw_reply').clone().removeAttr('id').css('display', '');
+			$(status).append(form);
+		}
+		form.find(':input[name="in_reply_to_status_id"]').val('@' + context.id_str);
+		form.find(':input[name="status"]').val('').focus().val('@' + context.user.screen_name + " ");
+	}
+
+	function post_retweet(elem) {
+		var context = $.data($(elem).parents('.status')[0], 'context');
+		console.log($(elem).parents('.status')[0], context);
+		context.id_str;
+		context.user.screen_name;
+	}
+
+	function post_status(status, in_reply_to_status_id) {
+		var params = {
+			status : status
+		};
+		if (in_reply_to_status_id !== undefined) {
+			paramas.in_reply_to_status_id = in_reply_to_status_id;
+		}
+		return tw.rest('POST', '1/statuses/update', params).promise();
+	}
+
+	function post_retweet(status_id) {
+		return tw.rest('POST', '1/statuses/retweet/' + status_id);
+	}
+
+	function get_hometimeline(params) {
+		location.hash = "!/";
+		return get_timeline('home_timeline').promise();
+	}
+
+	function get_usertimeline(screen_name, params) {
+		if (screen_name === undefined) {
+			screen_name = $('#tw_user').data('DataTmpl').context.screen_name;
+		}
+		location.hash = "!/" + screen_name;
+		get_timeline('user_timeline', $.extend({
+			screen_name : screen_name
+		}, params)).promise();
+	}
+
+	var timeline_filters = {
+		//"status:user.screen_name":function(v){ return "http://twitter.com/"+v; },
+		"status:created_at" : function(v, i, context) {
+			//return new Date(Date.parse(v));
+			/*
+			return $.relativeTime(new Date(Date.parse(v)));
+			*/
+			return {
+				'@html' : {
+					'href' : 'https://twitter.com/' + context.user.screen_name + '/status/' + context.id_str,
+					'target' : '_blank',
+					'@text' : $.relativeTime(new Date(Date.parse(v)))
+				}
+			}
+			context.id_str
+
+		},
+		"status:text" : function(v, i, context) {
+			v = $.encodeHtml(v);
+			ret = v;
+			if (context.entities) {
+				var e = context.entities;
+				var all = []
+				for ( var k in e) {
+					$.each(e[k], function(i, v) {
+						v._type = k;
+					});
+					all = all.concat(e[k]);
+				}
+				all.sort(function(a, b) {
+					return a.indices[0] < b.indices[0] ? -1 : 1;
+				});
+				var offset = 0, bit, ret = '';
+				while (bit = all.shift()) {
+					ret += v.substring(offset, bit.indices[0]);
+					
+					var txt = v.substring(bit.indices[0], bit.indices[1])
+					var href, target = '_target', onclick = '', title = '';
+					switch (bit._type) {
+					case 'media':
+						txt = bit.display_url || bit.url;
+						href = bit.expanded_url || bit.url;
+						target = "_blank"
+						break;
+					case 'urls':
+						txt = bit.display_url || bit.url;
+						href = bit.expanded_url || bit.url;
+						target = "_blank"
+						break;
+					case 'user_mentions':
+						href = '#!/' + bit.screen_name;
+						onclick = 'get_usertimeline("' + bit.screen_name + '");return false;';
+						break;
+					case 'hashtags':
+						href = '#!/search/#' + bit.text;
+						onclick = 'search_timeline("#' + bit.text + '");return false;';
+						break;
+					}
+					ret += $('<a>').text(txt).attr({
+						href : href,
+						target : target,
+						'onclick' : onclick
+					}).outerHTML();
+					offset = bit.indices[1];
+				}
+				ret += v.substring(offset);
+			}
+			ret = ret.replace(/(.)([RQ]T <a[^>]+>.*)(?=[RQ]T |$)/g, '$1<blockquote>$2</blockquote>');
+			return {
+				'@html' : {
+					'@html' : ret
+				}
+			};
+		},
+		"status:source" : function(v) {
+			return {
+				'@html' : {
+					'@html' : v
+				},
+			}
+		},
+		"status:entities.media:media_url_https" : function(v) {
+			return v + ':thumb';
+		}
+	};
+	
+	function timeline_regulate_search(res) {
+		var status = $.map(res.results, function(v, i) {
+			if (v.retweeted_status) {
+				var retweeted_by = v.user;
+				retweeted_by.link = {
+					'@html' : {
+						'href' : '#!/' + v.user.screen_name,
+						'onclick' : 'get_usertimeline("' + v.user.screen_name + '");return false;'
+					}
+				};
+				v = v.retweeted_status;
+				v.retweeted_by = retweeted_by;
+			}
+			v['@html'] = {
+				'data-status-id' : v.id_str
+			};
+			v.user = {
+				id : v.from_user_id,
+				id_str : v.from_user_id_str,
+				screen_name : v.from_user,
+				name : v.from_user_name,
+				profile_image_url : v.profile_image_url,
+				profile_image_url_https : v.profile_image_url_https
+			};
+			
+			v.user.link = {
+				'@html' : {
+					href : '#!/' + v.user.screen_name,
+					'onclick' : 'get_usertimeline("' + v.user.screen_name + '");return false;'
+				}
+			};
+			
+			var thumbs = extractThumbs(v.text);
+			if (thumbs) {
+				if (!v.entities) {
+					v.entities = {};
+				}
+				v.entities.thumbs = thumbs
+			}
+			
+			v.text = $('<div>').html(v.text).text();
+			v.source = $('<div>').html(v.source).text();
+			return v;
+		});
+		return status;
+	}
+
+	function search_timeline(query, params) {
+		
+		location.hash = "!/" + query;
+		
+		var _d = new $.Deferred();
+		
+		$("#tw_timeline").mask();
+		params = $.extend({
+			include_entities : 1,
+			include_rts : 1,
+			rpp : 20,
+			trim_user : 0,
+			result_type : 'mixed' // mixed|recent|popular'
+		// since_id, max_id, page, lang, geocode
+		}, params);
+		tw.search(query, params).then(function(res, limit) {
+			var status = timeline_regulate_search(res);
+			$("#tw_timeline").dataTmpl({
+				status : status
+			}, {
+				filters : timeline_filters
+			})
+			$("#tw_timeline .statuses").vgrid();
+			setLinkHover($("#tw_timeline .status[data-tmpl-gen] .text a[href]"));
+		}).fail(function(res) {
+			$('#err').text($.toJSON(res));
+		}).always(function() {
+			$("#tw_timeline").unmask();
+		});
+		
+		return _d.promise();
+		
+	}
+
+	function timeline_regulate_rest(res) {
+		var status = $.map(res, function(v, i) {
+			if (v.retweeted_status) {
+				var retweeted_by = v.user;
+				retweeted_by.link = retweeted_by.link = {
+					'@html' : {
+						'href' : '#!/' + v.user.screen_name,
+						'onclick' : 'get_usertimeline("' + v.user.screen_name + '");return false;'
+					}
+				};
+				v.retweeted_status.cerated_at = v.created_at;
+				v = v.retweeted_status;
+				v.retweeted_by = retweeted_by;
+			}
+			v['@html'] = {
+				'data-status-id' : v.id_str
+			};
+			
+			v.user.link = {
+				'@html' : {
+					href : '#/' + v.user.screen_name,
+					'onclick' : 'get_usertimeline("' + v.user.screen_name + '");return false;'
+				}
+			};
+			
+			var thumbs = extractThumbs(v.text);
+			if (thumbs) {
+				if (!v.entities) {
+					v.entities = {};
+				}
+				v.entities.thumbs = thumbs
+			}
+			
+			v.text = $('<div>').html(v.text).text();
+			return v;
+		});
+		return status;
+	}
+
+	function get_timeline(endpoint, params) {
+		var _d = new $.Deferred();
+		
+		$('#tw_timeline').mask();
+		params = $.extend({
+			include_entities : 1,
+			include_rts : 1,
+			count : 20,
+			trim_user : 0
+		// since_id, max_id, page,
+		}, params);
+		tw.rest('GET', '1/statuses/' + endpoint, params).then(function(res, limit) {
+			$('#tw_ratelimit').dataTmpl(limit, {
+				filters : {
+					reset_time : function(v) {
+						return $.relativeTime(new Date(v));
+					}
+				}
+			});
+			var status = timeline_regulate_rest(res);
+			$("#tw_timeline").dataTmpl({
+				status : status,
+				max : {
+					id_str : status[0].id_str,
+					ts : new Date(Date.parse(status[0].created_at))
+				},
+				since : {
+					id_str : status[status.length - 1].id_str,
+					ts : new Date(Date.parse(status[status.length - 1].created_at))
+				}
+			}, {
+				filters : timeline_filters
+			})
+			$("#tw_timeline .statuses").vgrid();
+			setLinkHover($("#tw_timeline .status[data-tmpl-gen] .text a[href]"));
+		}).fail(function(res) {
+			$('#err').text($.toJSON(res));
+		}).always(function() {
+			$('#tw_timeline').unmask(false);
+		});
+		
+		return _d.promise();
+		
+	}
+
+	$(function() {
+		//rate_limit();
+		//getHomeTimeline();
+		
+		tw = new $.Twitter();
+		
+		$("form#tw_post").submit(function() {
+			try {
+				var params = $(this).formGet();
+				post_status(params.status).then(function(res) {
+					console.log(res);
+				});
+			} catch (ex) {
+				// $.doLater(function(){throw ex;});
+				console.log(ex);
+			}
+			return false;
+		});
+		
+		$("form#tw_reply").submit(function() {
+			var params = $(this).formGet();
+			post_status(params).then(function(res) {
+				console.log(res);
+			});
+			return false;
+		});
+		
+		$("#tw_ratelimit").dataTmpl({}, {
+			filters : {
+				'reset_time' : function(v) {
+					return new Date(v);
+				}
+			}
+		});
+		
+		$('#tw_trends_select input[type="radio"]').change(function() {
+			$('#tw_trends_select label').removeClass('selected');
+			$(this).parent('label').addClass('selected');
+			search_timeline($(this).val());
+		});
+		
+		tw.checkLogin().then(function(res) {
+			$("#tw_user").mask();
+			if (res.logined) {
+				tw.getLoginUser(res).then(function(res) {
+					res.user.link = 'https://twitter.com/' + res.user.screen_name;
+					$('#tw_user').dataTmpl(res).unmask();
+					$.doLater(get_hometimeline);
+				});
+			} else {
+				$('#tw_user').dataTmpl({
+					user : null
+				}).unmask();
+			}
+			tw.rest('GET', '1/trends/available').then(function(res) {
+				var selection = res.sort(function(a, b) {
+					return a.name < b.name ? -1 : 1;
+				});
+				$('#tw_trends_available').dataTmpl({
+					trends_available : selection
+				}, {
+					filters : {
+						'trends_available' : function(v) {
+							return $.map(v, function(v, i) {
+								return {
+									"@html" : {
+										"value" : v.woeid,
+										"@text" : v.name
+									}
+								}
+							});
+						}
+					}
+				}).find('select').change(function() {
+					$("#tw_trends").mask();
+					var woeid = $(this).val();
+					$.cookie('trend', woeid);
+					tw.rest('GET', '1/trends/' + woeid).then(function(res) {
+						var trends = res[0];
+						$.map(res[0], function(v, i) {
+							v.option = {
+								'@html' : {
+									'value' : v.name,
+								}
+							}
+							return v;
+						});
+						$('#tw_trends').dataTmpl(res[0]).unmask();
+					});
+				}).val($.cookie('trend') || '1');
+				$("#tw_trends").mask();
+				tw.rest('GET', '1/trends/' + ($.cookie('trend') || 1)).then(function(res) {
+					$('#tw_trends').dataTmpl(res[0]).unmask();
+				});
+			});
+		}).fail(function(res) {
+			$('#tw_user').dataTmpl({
+				user : null
+			}).unmask();
+		});
+		
+	})
+</script>
+
+<link rel="stylesheet" href="statuses.css">
+
+</head>
+<body>
+
+	<pre id="err"></pre>
+	<div id="err_html"></div>
+
+	<input type="button" onclick="getLoginUser()" value="checklogin">
+	<input type="button" onclick="tw.authenticate()" value="authenticate">
+	<input type="button" onclick="tw.authorize({force:1})" value="authorize">
+	<input type="button" onclick="tw.logout()" value="logout">
+
+
+	<div id="tw_user">
+		<div data-tmpl="user">
+			<a data-tmpl="user.link" class="img">
+				<img data-tmpl="user.profile_image_url_https">
+			</a>
+			<a data-tmpl="link" class="name">
+				<span data-tmpl="user.name"></span>
+			</a>
+			@
+			<span data-tmpl="user.screen_name" class="screen_name"></span>
+			<div data-tmpl="!is_me">
+				<div data-tmpl="?user.following">Following</div>
+				<div data-tmpl="!user.following">not Following</div>
+			</div>
+			<span data-tmpl="user.statuses_count"></span>
+			Tweets,
+			<span data-tmpl="user.favourites_count"></span>
+			Follows,
+			<span data-tmpl="user.followers_count"></span>
+			Follower
+		</div>
+		<div data-tmpl="!user">Not Logined</div>
+	</div>
+
+	<div id="tw_ratelimit">
+		<span data-tmpl="remaining_hits"></span>
+		/
+		<span data-tmpl="hourly_limit"></span>
+		<span data-tmpl="reset_time"></span>
+	</div>
+
+	<form id="tw_post" class="post">
+		<textarea name="status"></textarea>
+		<input type="hidden" name="in_reply_to_status_id"> <input type="submit">
+	</form>
+
+	<form id="tw_reply" style="display: none;" class="reply">
+		<textarea name="status"></textarea>
+		<input type="hidden" name="in_reply_to_status_id"> <input type="submit">
+	</form>
+
+	<form id="tw_trends_available">
+		<select name="trend_selected" style="width: 15em">
+			<option data-tmpl="trends_available" value="">Loading...</option>
+		</select>
+	</form>
+	<div id="tw_trends">
+		<form id="tw_trends_select">
+			<div data-tmpl="trends">
+				<!-- 
+				<a data-tmpl="trends:url" target="_blank"><span data-tmpl="trends:name"></span></a>
+				promoted_content, events, query(escaped)
+				 -->
+				<label> <span data-tmpl="trends:name"></span> <input type="radio" name="trends_query"
+					data-tmpl="trends:name" style="display: none">
+				</label>
+			</div>
+		</form>
+	</div>
+
+
+	<input type="button" onclick="get_hometimeline()" value="Home">
+	<input type="button" onclick="get_usertimeline()" value="MyTweets">
+	<form onsubmit="search_timeline($('#search_query').val());return false;">
+		<input type="text" name="query" id="search_query"> <input type="submit" onclick="" value="Search">
+	</form>
+
+
+	<div id="tw_timeline" class="statuses">
+		<div data-tmpl="max_id"></div>
+		<div data-tmpl="?status" class="prepend">
+			<div>
+				<a onclick="">New Tweets</a>
+			</div>
+		</div>
+		<div class="statuses">
+			<div data-tmpl="status" class="status">
+				<div data-tmpl="status:user" class="user">
+					<a data-tmpl="status:user.link" class="img">
+						<img data-tmpl="status:user.profile_image_url_https">
+					</a>
+					<a data-tmpl="status:user.link" class="name">
+						<span data-tmpl="status:user.name"></span>
+					</a>
+					@
+					<span data-tmpl="status:user.screen_name" class="screen_name"></span>
+				</div>
+				<div data-tmpl="status:text" class="text"></div>
+				<div data-tmpl="?status:in_reply_to_status_id">
+					<a onclick=""> Show Reply </a>
+				</div>
+
+				<div data-tmpl="status:retweeted_by" class="rtby">
+					RT by
+					<a data-tmpl="status:retweeted_by.link" class="name">
+						<span data-tmpl="status:retweeted_by.name"></span>
+					</a>
+					@
+					<span data-tmpl="status:retweeted_by.screen_name" class="screen_name"></span>
+				</div>
+				<div data-tmpl="status:retweeted" class="retweeted">
+					<div data-tmpl="status:retweet_count"></div>
+				</div>
+				<div data-tmpl="status:favorited" class="favorited">Favorited</div>
+
+				<div data-tmpl="?status:place" class="place">
+					<span data-tmpl="status:place.name"></span>
+					<span data-tmpl="status:place.country"></span>
+					<a data-tmpl="place.url">API</a>
+				</div>
+				<div data-tmpl="status:entities" class="entities">
+					<div data-tmpl="status:entities.media" class="entity">
+						<a data-tmpl="status:entities.media:url" target="_blank">
+							<img data-tmpl="status:entities.media:media_url_https">
+						</a>
+					</div>
+					<div data-tmpl="status:entities.thumbs" class="entity">
+						<a data-tmpl="status:entities.thumbs:link" target="_blank">
+							<img data-tmpl="status:entities.thumbs:img">
+						</a>
+					</div>
+				</div>
+				<div class="footer">
+					<div class="manip">
+						<a data-tmpl="?status:favorited" onclick="favorite(this, false);">★</a>
+						<a data-tmpl="!status:favorited" onclick="favorite(this, true);">☆</a>
+						<a onclick="post_reply(this)">Reply</a>
+						<a onclick="post_retweet(this)">Retweet</a>
+					</div>
+					<div data-tmpl="status:source" class="source"></div>
+					-
+					<a data-tmpl="status:created_at" class="created"></a>
+				</div>
+			</div>
+		</div>
+		<div data-tmpl="?status" class="append">
+			<div>
+				<a onclick="">Old Tweets</a>
+			</div>
+		</div>
+		<div data-tmpl="!status">No Tweet</div>
+		<div data-tmpl="since_id"></div>
+	</div>
+
+</body>
+</html>

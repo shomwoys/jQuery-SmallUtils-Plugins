@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,user-scalable=no">
+<title>jQuery Events Plugin : Tests and examples</title>
+
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.js"></script>
+
+<!-- http://code.google.com/p/jquery-json/ -->
+<script src="js/jquery.json-2.3.js"></script>
+
+<script src="../jquery-utils.js"></script>
+<script src="../jquery-events.js"></script>
+<script>
+
+function msg(str, obj){
+	if (obj !== undefined) {
+		str += "\n---\n" + $.toJSON(obj, "\n", '  ');
+	}
+	return $('<div class="pre">').addClass('pre').text(str)
+		.appendTo($('#msg'));
+}
+function err(str, obj){
+	msg(str.obj).addClass('error');
+}
+
+$(function(){
+	var fill = $("#test,.scrollable");
+	for (var i=0,l=1000; i<l; i++) {
+		fill.append($('<div>').text('test'+i));
+	}
+	$(document).on('scroll', function(){
+		console.log('scroll');
+	});
+	$(document).on('scrolled', function(){
+		console.log('scrolled');
+	});
+	
+	$(".scrollable").on('scroll', function(){
+		console.log('.scrollable scroll', this);
+	}).on('scrolled', function(){
+		console.log('.scrollable scrolled', this);
+	});
+	
+	$(document).on('mousewheel', function(){
+		console.log('mousewheel');
+	});
+	
+	$(document).on('touchscroll', function(){
+		console.log('touchscroll');
+	});
+	$(document).on('scroll', function(){
+		console.log('scroll');
+	});
+	
+	/*
+	$(document).on('resize', function(){
+		console.log('resize');
+	});
+	$(document).on('resized', function(){
+		console.log('resized');
+	});
+	$(".resizable").on('resize', function(){
+		console.log('.resizable resize', this);
+	}).on('resized', function(){
+		console.log('.resizable resized', this);
+	});
+	*/
+	
+	/*
+	$(document).on('mousewheel mousemove touchstart touchmove touchend orientationchange', function(ev){
+		console.log(ev.type);
+	});
+	*/
+});
+
+</script>
+
+<style>
+
+div.pre {
+	white-space:pre;
+	border:4px solid #ccc;
+	overflow:auto;
+	width:auto;
+}
+
+div.error {
+	border-color:#f88;
+	background-color:#fee;
+}
+
+#test {
+}
+
+.scrollable {
+	position: relative;
+	height: 100px;
+	overflow: scroll;
+	border: 1px solid blue;
+}
+
+.resizable {
+	position: relative;
+	width: 50%;
+	height: 100px;
+	border: 1px solid red;
+}
+
+#console_dummy {
+	position:fixed;
+	top:0;
+	right:0;
+	width: 75%;
+	height: 10em;
+	white-space: nowrap;
+}
+
+</style>
+</head>
+<body>
+
+<div id="msg"></div>
+<div id="err"></div>
+
+<div class="scrollable" id="sc1"></div>
+<div class="scrollable" id="sc2"></div>
+
+<div class="resizable" id="rs1"></div>
+<div class="resizable" id="rs2"></div>
+
+<div id="test">
+</div>
+
+<textarea id="console_dummy"></textarea>
+
+</body>
+</html>

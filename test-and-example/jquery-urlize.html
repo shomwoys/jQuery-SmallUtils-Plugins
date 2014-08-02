@@ -40,7 +40,8 @@ function testall(){
 		"",
 		"and Twitter @reply and #hash support.",
 		"#hash1 #hash2 #hash3",
-		"#日本語 #ハッシュ 全角　#スペース "
+		"#日本語 #ハッシュ 全角　#スペース ",
+		"あああああ http://aaaa.bbb.c/日本語パス入り/です#よ　全角空白は区切りとする"
 	].join("\n");
 	for (var k in TEST) {
 		msg('----------- TEST:'+k+' ---------------');
@@ -83,11 +84,11 @@ var TEST = {
 		}).appendTo(document.body);
 	},
 	'test6':function(v){
-		$('<h3 class="res">').text('Twitter Link @reply, #hash ').appendTo(document.body);
+		$('<h3 class="res">').text('No Twitter Link @reply, #hash ').appendTo(document.body);
 		$('<p class="res">').text('trunc:[10, 10, true]').appendTo(document.body);
 		$('<div class="res">').urlize(v,{
 			trunc:[10,10,true],
-			twitter:true
+			twitter: false
 		}).appendTo(document.body);
 	}
 }

@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>jQuery Utils Plugin : Tests and examples</title>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.js"></script>
+<script src="http://ajax.googleapis.com/ajax/libs/swfobject/2.2/swfobject.js"></script>
+
+<!-- http://code.google.com/p/jquery-json/ -->
+<script src="js/jquery.json-2.3.js"></script>
+
+
+<script src="../jquery-utils.js"></script>
+<script src="../jquery-urlize.js"></script>
+<script src="../jquery-datatmpl.js"></script>
+<link rel="stylesheet" href="../jquery-datatmpl.css">
+
+<script>
+	function msg(str, obj) {
+		if (obj !== undefined) {
+			str += "\n---\n" + $.toJSON(obj, "\n", '  ');
+		}
+		return $('<div>').addClass('pre').text(str).appendTo($('#msg'));
+	}
+	function err(str, obj) {
+		msg(str.obj).addClass('error');
+	}
+
+	$(function() {});
+</script>
+
+<style>
+div.pre {
+	white-space: pre-wrap;
+	border: 4px solid #ccc;
+	overflow: auto;
+	width: auto;
+}
+
+div.error {
+	border-color: #f88;
+	background-color: #fee;
+}
+
+form {
+	border: 4px solid #ccc;
+	background: #eee;
+	padding: 10px;
+}
+
+.tmpl {
+	border: 4px solid #ccc;
+	margin: 10px;
+	padding: 5px;
+}
+
+.tmpl * {
+	border: 1px solid black;
+	margin: 5px 20px;
+	padding: 5px;
+}
+
+.tmpl .odd {
+	background: #fee;
+}
+
+.tmpl .even {
+	background: #efe;
+}
+
+.invalid {
+	background: red;
+}
+</style>
+</head>
+<body>
+
+	<div id="msg"></div>
+	<div id="err"></div>
+
+	<h3>Deferred Context</h3>
+
+	<script>
+		$(function() {
+		});
+	
+		function tmplRender() {
+			var _time = new Date().getTime();
+			var context = $.Deferred(function(_d){
+				var res = {
+					'static1' : 'deferred static1',
+					'deferred' : [ 'arr1', 'arr2'],
+					'static2' : 'deferred static2',
+					'img' : 'http://lorempixel.com/640/480/sports/lap-' + (new Date().getTime() - _time) + '/',
+					'lap': new Date().getTime() - _time
+				}
+				var _delay = 0;
+				res.deferred = $.map(res.deferred, function(v, i){
+					_delay += 500;
+					return $.Deferred(function(_d){
+						var _delay_child = Math.max(0, Math.round(Math.random()*3)*1000);
+						setTimeout(function(){
+							!_d.isRejected() && _d.resolve({
+								'data' : {
+									'static': 'wait ' + _delay_child + ' sec',
+									'deferred': $.Deferred(function(_d){
+										setTimeout(function(){
+											_d.resolve({
+												'static': 'defered - ' + _delay_child,
+												'img' : 'http://lorempixel.com/400/200/sports/lap-' + (new Date().getTime() - _time)  + '/'
+											});
+										}, _delay_child);
+									}).then(function(res){
+										console.log('deferred.data.deferred:done', res);
+									}).fail(function(res){
+										console.log('deferred.data.deferred:fail', res);
+									})
+								},
+								'delay' : _delay,
+								'lap': new Date().getTime() - _time
+							});
+						}, _delay);
+						console.log(_delay);
+					}).then(function(res){
+						console.log('deferred:done', res);
+					}).fail(function(res){
+						console.log('deferred:fail', res);
+					});
+				});
+				setTimeout(function(){
+					!_d.isRejected() && _d.resolve(res);
+				});
+			})
+			$('#test1').dataTmpl(context);
+			var tmpl = $('#test1').data('DataTmpl');
+			tmpl.deferred.then(function(res){
+				alert('#test1 done');
+				console.error('#test1 done');
+			}).fail(function(){
+				// alert('#test1 failed');
+				console.error('#test1 failed');
+			});
+		}
+		
+		function tmplAbort() {
+			tmplRender();
+			setTimeout(function(){
+				console.error('#test1 aborting');
+				$('#test1').data('DataTmpl').abort();
+				console.error('#test1 aborted');
+			}, 750);
+		}
+		
+		function tmplOverwrite() {
+			tmplRender();
+			setTimeout(function(){
+				console.error('#test1 aborting');
+				$('#test1').data('DataTmpl').getDeferredsStates();
+				$('#test1').data('DataTmpl').abort();
+				console.error('#test1 aborted');
+				$('#test1').data('DataTmpl').getDeferredsStates();
+				//$('#test1').data('DataTmpl').clear();
+				$('#test1').data('DataTmpl').render({
+					'static1': 'overwritten'
+				});
+			}, 750);
+		}
+		
+	</script>
+	<style>
+		#test1 img {
+			width: 160px;
+		}
+		#test1 [data-tmpl-row="deferred"] {
+			display: inline-block;
+		}
+	</style>
+	
+	<input onclick="tmplRender()" value="render" type="button">
+	<input onclick="tmplAbort()" value="render|750ms|abort" type="button">
+	<input onclick="tmplOverwrite()" value="render|750ms|render(overwrite)" type="button">
+	
+	<div id="test1" class="tmpl">
+		<img data-tmpl="img">
+		<div data-tmpl="static1"></div>
+		<div data-tmpl="deferred">
+			<div data-tmpl="deferred:data">
+				deferred:data
+				<div data-tmpl="deferred:data.static"></div>
+				<div data-tmpl="deferred:data.deferred">
+					<div data-tmpl="deferred:data.deferred.static"></div>
+					<img data-tmpl="deferred:data.deferred.img">
+				</div>
+			</div>
+			<div data-tmpl="deferred:delay"></div>
+			<div data-tmpl="deferred:lap"></div>
+		</div>
+		<div data-tmpl="static2"></div>
+	</div>
+
+</body>
+</html>

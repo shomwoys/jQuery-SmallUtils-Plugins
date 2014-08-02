@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>jQuery Utils Plugin : Tests and examples</title>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.js"></script>
+
+<!-- http://code.google.com/p/jquery-json/ -->
+<script src="js/jquery.json-2.3.js"></script>
+
+
+<script src="../jquery-parseuri.js"></script>
+<script>
+	function msg(str, obj) {
+		if (obj !== undefined) {
+			str += "\n---\n" + $.toJSON(obj, "\n", '  ');
+		}
+		return $('<div class="pre">').addClass('pre').text(str).appendTo($('#msg'));
+	}
+	function err(str, obj) {
+		msg(str.obj).addClass('error');
+	}
+
+	$(function() {
+		for ( var k in TEST) {
+			msg('----------- TEST:' + k + ' ---------------');
+			TEST[k]();
+		}
+	});
+
+	var TEST = {
+		parseUri : function() {
+			$.each([ 'https://some.host.name', 'https://some.host.name:8080', 'http://user@some.host.name', 'http://user:pass@some.host.name',
+					'http://some.host.name/#abc', 'http://some.host.name/?q=1', 'http://some.host.name/?q=1#abc',
+					'http://some.host.name/?q1=1&q2=2&q3=1&q3=2&q4', 'http://some.host.name/file', 'http://some.host.name/path/to/file',
+					'http://some.host.name/path/only/' ], function(i, v) {
+				var uri = $.Uri(v);
+				var href = new $.Uri(v).href();
+				msg('$.parseUri("' + v + '")', $.parseUri(v));
+				msg((v == href) + ' - ' + v + ' ' + href);
+			});
+		},
+		parseUri_relative : function() {
+			$.each([ '//protocol.is.same/as/original', '/relative/absolute/path', 'relative/path', 'relative', '../relative', '../relative/file', '#newhash',
+					'?q=new%20query', '?q=new%20query#newhash' ], function(i, v) {
+				var uri = $.Uri(v);
+				var href = new $.Uri(v).href();
+				msg('$.parseUri("' + v + '")', $.parseUri(v));
+			});
+		},
+		set : function() {
+			$.each([
+			    [ 'protocol' , 'ftp:' ],
+			    [ 'user', 'set_user' ],
+			    [ {'user':'forpass', 'pass':'set_pass' } ],
+			    [ 'hostname', 'set.host.name'],
+			    [ 'port', 1234],
+			    [ 'dirname', '/set/dir/name/'],
+			    [ 'file', 'set_file'],
+			    [ 'search', '?set=search'],
+			    [ 'hash', '#set-hash'],
+			    [ 'host', 'set.host.name:1234'],
+			    [ 'pathname', '/set/pathname/file'],
+			    [ 'params', 'set', 'setvalue'],
+			    [ 'params', { 'set' : 'setvalue' }]
+			], function(i, v){
+				var uri = $.Uri();
+				msg(v, uri.set(v[0], v[1], v[2]));
+			});
+		}
+
+	}
+</script>
+
+<style>
+div.pre {
+	white-space: pre;
+	border: 4px solid #ccc;
+	overflow: auto;
+	width: auto;
+}
+
+div.error {
+	border-color: #f88;
+	background-color: #fee;
+}
+
+label.checked {
+	background: #f88;
+}
+</style>
+</head>
+<body>
+
+	<div id="msg"></div>
+	<div id="err"></div>
+
+
+</body>
+</html>

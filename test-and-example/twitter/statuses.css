@@ -1,0 +1,125 @@
+@CHARSET "UTF-8";
+
+body {
+	font-size: 10px;
+	font-family:serif;
+	line-height:1.6;
+}
+
+.statuses .status {
+	border: 1px solid #ccc;
+	/* margin-bottom:-1px; */
+	font-size: 12px;
+	color: #888;
+	position: relative;
+	zoom: 1;
+	/* overflow:hidden;*/
+	padding: 5px;
+	padding-left: 46px;
+	
+	
+	/* width:25%; */
+	width:249px;
+	/*
+	display:inline-block;
+	vertical-align:top; */
+	/* margin-right:-1px; */
+	
+}
+
+.status a {
+	text-decoration: none;
+	color:
+}
+
+.status a:hover {
+	text-decoration: underline;
+}
+
+.status .user {
+	
+}
+
+.status .user .img {
+	position: absolute;
+	top: 7px;
+	left: 7px;
+	display:block;
+}
+
+.status .user a.img img {
+	max-width:32px;
+	max-height:32px;
+}
+
+.status .user .name {
+	/* color: black; */
+	font-size: 110%;
+	font-weight: bold;
+	cursor:pointer;
+}
+
+.status .user .screen_name {
+	font-size: 90%;
+}
+
+.status .text {
+	color: black;
+	font-size: 110%;
+}
+
+.status .text blockquote {
+	color:#666;
+	margin:5px 20px 5px;
+	padding:5px;
+	border:1px solid #ccc;
+}
+
+.status .retweeted {
+	
+}
+
+.status .place {
+	
+}
+
+.status .entities .entity {
+	display:inline-block;
+	vertical-align:middle;
+	margin:10px;
+}
+
+.status .entities .entity img {
+	max-width:120px;
+	max-height:120px;
+}
+
+.status .footer .manip {
+	float: left;
+}
+
+.status .footer {
+	clear: both;
+	text-align: right;
+}
+
+.status .footer .created {
+	display: inline-block;
+}
+
+.status .footer .source {
+	display: inline-block;
+}
+
+.status .footer .source a {
+	color: #888;
+}
+
+/***************/
+#tw_trends_select label {
+	display: block;
+}
+
+#tw_trends_select label.selected {
+	background: #cfc;
+}

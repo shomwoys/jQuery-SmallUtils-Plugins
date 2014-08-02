@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport"
+	content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>Yahoo Shopping</title>
+
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.js"></script>
+
+<script src="../js/jquery.json-2.3.js"></script>
+
+<script src="../../jquery-utils.js"></script>
+<script src="../../jquery-urlize.js"></script>
+<script src="../../jquery-datatmpl.js"></script>
+<link rel="stylesheet" href="../../jquery-datatmpl.css">
+
+<script src="../../jquery-form.js"></script>
+
+<script src="js/yahooapi.js"></script>
+
+
+<script src="../js/jquery.easing.1.3.js"></script>
+<script src="../js/jquery.vgrid.1.8.js"></script>
+
+<link rel="stylesheet" href="//current.bootstrapcdn.com/bootstrap-v204/css/bootstrap.css">
+<link rel="stylesheet" href="//current.bootstrapcdn.com/bootstrap-v204/css/bootstrap-responsive.css">
+<script src="http://current.bootstrapcdn.com/bootstrap-v204/js/bootstrap.js"></script>
+<script src="http://current.bootstrapcdn.com/bootstrap-v204/js/bootstrap-popover.js"></script>
+
+<!-- 
+FB login window 450x278 + 450x43 = 450x321
+ -->
+
+<script>
+	var Y_APP_ID = 'x0B8xG2xg67HLDmGgF5z73x3MefGkMK6X5cnNorhiJjpFNLhNOdY_k_eQ4gWZvOob7bp';
+	
+	$(function() {
+		$.YJDN.init({
+			appid : Y_APP_ID
+		});
+		
+		$('#yshp_events').dataTmpl($.YJDN.api('eventSearch', {
+			offset : 0,
+			hits : 20,
+			sort : 'date',
+			event_type : 'point'
+		}), {
+			filters : {
+				'Items:EventTerm.Start' : function(v) {
+					return $.parseISO8601(v);
+				},
+				'Items:EventTerm.End' : function(v) {
+					return $.parseISO8601(v);
+				}
+			}
+		}).data('DataTmpl').done(function(){
+			$('#yshp_events').vgrid();
+		});
+
+		$('form#category_params').submit(function() {
+			categoryRanking($(this).formGet());
+			return false;
+		});
+		
+		$('form#category_params :input').change(function() {
+			$(this).submit();
+		});
+		
+		function categoryRanking(params) {
+			params = $.extend({
+				period : 'weekly',
+				offset:0
+			}, params);
+			$('#yshp_category_ranking').dataTmpl($.YJDN.api('categoryRanking', params), {
+				filters : {
+					'Items:Review' : function(v) {
+						v = $.extend({
+							'@html' : {
+								'@addClass' : 'rate_' + Math.round(parseFloat(v.Rate) * 4) / 2
+							}
+						}, v);
+						return v;
+					},
+					'Items:_attributes' : function(v) {
+						v = $.extend({
+							'@html' : {
+								'@addClass' : 'vector_' + v.vector
+							}
+						}, v);
+						return v;
+					}
+				}
+			}).data('DataTmpl').then(function() {
+				$("#yshp_category_ranking").vgrid();
+			});
+		}
+		
+		$('form#category_params').submit();
+		
+	});
+</script>
+<style>
+body {
+	font-size: 10px;
+	color: #666;
+	font-family: serif;
+	line-height: 1.6;
+}
+
+.product {
+	position: relative;
+	width: 146px;
+	border: 1px solid #544;
+	margin: 16px;
+	background:#eee;
+	/* padding: 5px; */
+	box-shadow:2px 2px 4px #888;
+}
+
+.product img {
+	display: block;
+	width: 146px;
+	height: 146px;
+}
+
+.product>.product_info {
+	padding: 5px;
+}
+
+.product>.ranking_info {
+	padding: 5px;
+}
+
+.product>.ranking_info [class^="icon-"] {
+	display: none;
+}
+
+.product>.ranking_info .vector_stay .icon-arrow-right,.product>.ranking_info .vector_up .icon-arrow-up,.product>.ranking_info .vector_down .icon-arrow-down
+	{
+	display: inline-block;
+}
+
+.product>.ranking_info .rate_star {
+	position: relative;
+	display: inline-block;
+}
+
+.product>.ranking_info .rate_star_bg {
+	display: inline-block;
+}
+
+.product>.ranking_info .rate_star_fg {
+	position: absolute;
+	display: inline-block;
+	top: 0;
+	left: 0;
+	overflow: hidden;
+	white-space: nowrap;
+	color: orange;
+}
+
+.product>.ranking_info .rate_0 .rate_star_fg {
+	width: 0;
+}
+
+.product>.ranking_info .rate_1 .rate_star_fg {
+	width: 10%;
+}
+
+.product>.ranking_info .rate_2 .rate_star_fg {
+	width: 20%;
+}
+
+.product>.ranking_info .rate_3 .rate_star_fg {
+	width: 30%;
+}
+
+.product>.ranking_info .rate_4 .rate_star_fg {
+	width: 40%;
+}
+
+.product>.ranking_info .rate_5 .rate_star_fg {
+	width: 50%;
+}
+
+.product>.ranking_info .rate_6 .rate_star_fg {
+	width: 60%;
+}
+
+.product>.ranking_info .rate_7 .rate_star_fg {
+	width: 70%;
+}
+
+.product>.ranking_info .rate_8 .rate_star_fg {
+	width: 80%;
+}
+
+.product>.ranking_info .rate_9 .rate_star_fg {
+	width: 90%;
+}
+
+.product>.ranking_info .rate_10 .rate_star_fg {
+	width: 100%;
+}
+</style>
+</head>
+<body>
+	<div id="all">
+
+		<form id="category_params">
+			<select name="gender">
+				<option value="female">女性</option>
+				<option value="male">男性</option>
+				<option value="" selected>男女</option>
+			</select> <select name="generation">
+				<option value="" selected>全年代</option>
+				<option value="0">10代以下</option>
+				<option value="10">10代</option>
+				<option value="20">20代</option>
+				<option value="30">30代</option>
+				<option value="40">40代</option>
+				<option value="50">50代</option>
+				<option value="60">60代以上</option>
+			</select> <select name="period">
+				<option value="weekly">週間ランキング</option>
+				<option value="daily">デイリーランキング</option>
+			</select>
+		</form>
+
+		<div id="yshp_events" class="events">
+			<div data-tmpl="Items" class="event">
+				<div data-tmpl="Items:EventCode"></div>
+				<div data-tmpl="Items:EventTitle"></div>
+				<div data-tmpl="Items:Description"></div>
+				<a data-tmpl="Items:Url">
+					<span data-tmpl="Items:Image">
+						<img data-tmpl="Items:Image.Original">
+					</span>
+				</a>
+				<div data-tmpl="Items:EventTerm">
+					<span data-tmpl="Items:EventTerm.Start"></span>
+					-
+					<span data-tmpl="Items:EventTerm.End"></span>
+				</div>
+			</div>
+		</div>
+
+		<div id="yshp_category_ranking">
+			<div data-tmpl="Items" class="product">
+				<a data-tmpl="Items:Url" target="_blank">
+					<span data-tmpl="Items:Image">
+						<img data-tmpl="Items:Image.Medium">
+					</span>
+				</a>
+				<div class="product_info">
+					<span data-tmpl="Items:Code" style="display: none"></span>
+					<div data-tmpl="Items:Name"></div>
+					<div data-tmpl="Items:Store">
+						<a data-tmpl="Items:Store.Url" target="_blank">
+							<span data-tmpl="Items:Store.Name"></span>
+						</a>
+						<span data-tmpl="Items:Store.Id" style="display: none"></span>
+					</div>
+				</div>
+				<div class="ranking_info">
+					<div data-tmpl="Items:Review">
+						<span data-tmpl="Items:Review.Rate"></span>
+						<a data-tmpl="Items:Review.Url" target="_blank">
+							<span data-tmpl="Items:Review.Count"></span>
+							Reviews
+						</a>
+						<div class="rate_star">
+							<div class="rate_star_bg">☆☆☆☆☆</div>
+							<div class="rate_star_fg">★★★★★</div>
+						</div>
+					</div>
+					<div data-tmpl="Items:_attributes">
+						<span data-tmpl="Items:_attributes.rank"></span>
+						<span data-tmpl="Items:_attributes.vector"></span>
+						<i class="icon-arrow-up"></i> <i class="icon-arrow-down"></i> <i class="icon-arrow-right"></i>
+					</div>
+				</div>
+			</div>
+		</div>
+
+	</div>
+</body>
+</html>

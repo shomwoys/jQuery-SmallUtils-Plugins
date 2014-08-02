@@ -1,0 +1,17 @@
+@charset 'utf-8';
+
+.tmpl_disabled {
+	display:none ! important;
+}
+
+.tmpl_waiting {
+	background-color: #ccc;
+}
+
+.for-tmpl_waiting {
+	display: none;
+}
+
+.tmpl_waiting .for-tmpl_waiting {
+	display: block;
+}

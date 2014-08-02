@@ -51,14 +51,16 @@ ex)
     $.parseISO8601('1970-01-01T00:00:00Z');
     -> Date(0)
 
-#### format Date() to String by format
+#### Date()をdateformat文字列でフォーマット
 
     $.dateformat(date,formatstr)
 
 ex)
 
-	$.dateformat(new Date(0), 'yyyy/MM/dd HH:mm');
+	$.dateformat(new Date(0), 'Y-m-d H:i');
 	-> "1970/01/01 00:00" (localtime)
+
+Y,y, m,n, d,j, H, G, i,s,u, h,g, a,A のみサポート
 
 ### Numberユーティリティ
 
@@ -246,11 +248,11 @@ ex)
         <div data-tmpl="array">
             <span data-tmpl="array:data>array[x].data placeholder</span>
         </div>
-        <div data-tmpl="now">formatted as yyyy/MM/dd HH:mm:ss</div>
+        <div data-tmpl="now">formatted as Y-m-d H:i:s</div>
         <div data-tmpl="html">html placeholder</div>
     </target>
 
-DataTmplオブジェクトは動的に変更できる。
+DataTmplオブジェクトは動的に変更でき、変更/挿入されたjQueryオブジェクトを返す。
 
     tmpl.update(extend_context);
     tmpl.spliceRows("<key for array>", position, delete_count, insert_array);

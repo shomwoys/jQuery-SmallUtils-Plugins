@@ -2,6 +2,7 @@
 <html>
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
 <title>jQuery Utils Plugin : Tests and examples</title>
 
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.js"></script>
@@ -12,223 +13,581 @@
 
 <script src="../jquery-utils.js"></script>
 <script>
-
-function msg(str, obj){
-	if (obj !== undefined) {
-		str += "\n---\n" + $.toJSON(obj, "\n", '  ');
+	function msg(str, obj) {
+		if (obj !== undefined) {
+			str += "\n---\n" + $.toJSON(obj, "\n", '  ');
+		}
+		return $('<div class="pre">').addClass('pre').text(str).appendTo($('#msg'));
 	}
-	return $('<div class="pre">').addClass('pre').text(str)
-		.appendTo($('#msg'));
-}
-function err(str, obj){
-	msg(str.obj).addClass('error');
-}
-
-$(function(){
-	for (var k in TEST) {
-		msg('----------- TEST:'+k+' ---------------');
-		TEST[k]();
+	function err(str, obj) {
+		msg(str.obj).addClass('error');
 	}
-});
 
-var TEST = {
+	$(function() {
+		for ( var k in TEST) {
+			msg('----------- TEST:' + k + ' ---------------');
+			TEST[k]();
+		}
+	});
 	
-	'typeOf': function(){
-		var vars = {
-			'num':1,
-			'str':'str',
-			'bool':true,
-			'func':function(){},
-			'arr':[1,2,3],
-			'obj':{'a':1},
-			'objNum':new Number(0),
-			'objStr':new String('obStr'),
-			'objBool':new Boolean(false),
-			'objArray':new Array(1,2,3),
-			'objObj':new Object({'b':'str'}),
-			'objFunc':new Function(),
-			'objDate':new Date(),
-			'objRegExp':new RegExp(),
-			'null':null,
-			'undefined':undefined
-		};
-		var typeofs = [];
-		for (var k in vars){
-			typeofs.push(k + ':' + $.typeOf(vars[k]));
+	function RectInfo(rect){
+		this.rect = rect;
+		if (!rect) { return this; }
+		if ('top' in rect) {
+			if ('height' in rect) {
+				this.rect.bottom = rect.top + rect.height;
+			}
+			if ('bottom' in rect) {
+				this.rect.height = rect.bottom - rect.top;
+			}
 		}
-		msg(typeofs.join("\n"));
-	},
+		if ('left' in rect) {
+			if ('width' in rect) {
+				this.rect.right = rect.left + rect.width;
+			}
+			if ('right' in rect) {
+				this.rect.width = rect.right - rect.left;
+			}
+		}
+		return this;
+	}
 	
-	'closure': function(){
-		var bound_function = $.closure(['ba1','ba2'], null, function(_bind_arg1, _bind_arg2, arg1, arg2, arg3){
-			msg([
-			     '_bind_arg1:' + _bind_arg1,
-			     '_bind_arg2:' + _bind_arg2,
-			     'arg1:' + arg1,
-			     'arg2:' + arg2,
-			     'arg3:' + arg3
-			].join('\n'));
-		});
-		bound_function('a1', 'a2', 'a3');
-	},
+	RectInfo.prototype.toString = function(){
+		var rect = this.rect;
+		if (!rect) { return '[Rect:' + rect + ']'; }
+		var ret = '[Rect:';
+		if ('width' in rect) {
+			ret += rect.width + 'x' + rect.height;
+		}
+		if ('top' in rect) {
+			ret += 
+				(rect.left>=0 ? '+' : '') + rect.left
+				+ (rect.top>=0 ? '+' : '') + rect.top;
+		}
+		return ret + ']';
+	};
 	
-	'doLaterWith': function(){
-		msg('start');
-		var start = new Date().getTime();
-		function delayFunc1(a){
-			return "doLaterWith:"+a+" - delayed " + (new Date().getTime() - start)+'ms';
-		}
-		$.doLaterWith(['0ms'],null,delayFunc1).then(function(res){msg(res);});
-		$.doLaterWith(['5000ms'],null,delayFunc1,5000).then(function(res){msg(res);});
-	},
-	
-	'doLater': function(){
-		msg('start');
-		var start = new Date().getTime();
-		function delayFunc2(){
-			return "doLater - delayed " + (new Date().getTime() - start)+'ms';
-		}
-		$.doLater(delayFunc2).then(function(res){msg(res);});
-		$.doLater(delayFunc2,5000).then(function(res){msg(res);});
-	},
-	
-	'parseISO8601' : function(){
-		var strs = [
-		    '1970-01-01T00:00:00.000Z',
-		    '1970-01-01T00:00:00.000+0000',
-		    '1970-01-01T00:00:00.000+1200',
-		    '2000-12-31T12:12:12Z',
-		];
-		for (var k in strs){
-			var v = strs[k];
-			var d = $.parseISO8601(v);
-			msg(v+' -> '+d.toGMTString()+'('+d.toLocaleString()+')');
-		}
-	},
-	
-	'numformat' : function(){
-		var nums = [1,12,123,1234,12345,123456,123456789, 1234.1, 1234.123, 1234.1234];
-		var str = [ '1','12','123','1,234', '12,345', '123,456', '123,456,789', '1,234.1', '1,234.123', '1,234.1234' ];
-		for (var i=0,l=nums.length;i<l;i++){
-			var v = $.numformat.comma3(nums[i]);
-			msg('comma3(x):'+ (str[i] == v) + ':'+v+'/'+str[i]);
-			var v = $.numformat.comma3(-nums[i]);
-			msg('comma3(x):'+ (('-'+str[i]) == v) + ':'+v+'/-'+str[i]);
-		}
-		var nums = [ 1, 1.4999, 1.5, 14.99, 15.00, 0.1499 ];
-		var str = [ '1', '1', '2', '15', '15', '0' ];
-		for (var i=0,l=nums.length;i<l;i++){
-			var v = $.numformat.round(nums[i]);
-			msg('round('+nums[i]+'):'+ (str[i] == v) + ':'+v+'/'+str[i]);
-		}
-		var nums = [ 1, 1.4, 1.449, 1.45 ];
-		var str = [ '1.0', '1.4', '1.4', '1.5'];
-		for (var i=0,l=nums.length;i<l;i++){
-			var v = $.numformat.round(nums[i],-1);
-			msg('round('+nums[i]+',-1):'+ (str[i] == v) + ':'+v+'/'+str[i]);
-		}
-		var nums = [ 0.1, 0.14, 0.14449, 0.14451 ];
-		var str = [ '0.100', '0.140', '0.144', '0.145'];
-		for (var i=0,l=nums.length;i<l;i++){
-			var v = $.numformat.round(nums[i],-3);
-			msg('round('+nums[i]+',-3):'+ (str[i] == v) + ':'+v+'/'+str[i]);
-		}
-		var nums = [ 10, 14, 15, 144, 145 ];
-		var str = [ '10', '10', '20', '140', '150'];
-		for (var i=0,l=nums.length;i<l;i++){
-			var v = $.numformat.round(nums[i],1);
-			msg('round('+nums[i]+',1):'+ (str[i] == v) + ':'+v+'/'+str[i]);
-		}
-		var nums = [ 10, 512, 1024, 4096, 1023 ];
-		var str = [ '0.01', '0.5', '1', '4', '1'];
-		for (var i=0,l=nums.length;i<l;i++){
-			var v = $.numformat.kilo(nums[i]);
-			msg('kilo('+nums[i]+'):'+ (str[i] == v) + ':'+v+'/'+str[i]);
-		}
-		
-	},
-	
-	'resolve': function(){
-		var a = {
-				var1:'a.var1',
-				arr1:['a.arr1[0]','a.arr1[1]','a.arr1[2]'],
-				func1:function(){return 'a.func1()';},
-				var2:{
-					var1:'a.var2.var1',
-					arr1:['a.var2.arr1[0]','a.var2.arr1[1]','a.var2.arr1[2]'],
-					func1:function(){return 'a.var2.func1()';},
-					var3:{
-						var1:'a.var2.var3.var1',
-						arr1:['a.var2.var3.arr1[0]','a.var2.var3.arr1[1]','a.var2.var3.arr1[2]'],
-						func1:function(){return 'a.var2.var3.func1()';}
-					}
-				},
-				func2:function(){
-					return {
-						var1:'a.func2().var1',
-						arr1:['a.func2().arr1[0]','a.func2().arr1[1]','a.func2().arr1[2]'],
-						func1:function(){ return 'a.func2().func1()'; }
-					}
-				},
-				arr2:[
-					{
-						var1:'a.arr2[0].var1',
-						arr1:['a.arr2[0].arr1[0]','a.arr2[0].arr1[1]','a.arr2[0].arr1[2]'],
-						func1:function(){return 'a.arr2[0].func1()';}
+	var TEST =
+		{
+			'events' : function(){
+				$('#watch-target').watch('text', {
+					watch: function(){
+						return $(this).text();
 					},
-					{
-						var1:'a.arr2[1].var1',
-						arr1:['a.arr2[1].arr1[0]','a.arr2[1].arr1[1]','a.arr2[1].arr1[2]'],
-						func1:function(){return 'a.arr2[1].func1()';}
+					onchange: function(id, old, cur){
+						console.log($(this).attr('id') + ' is changed from ' + old + ' to ' + cur);
 					}
-				]
-			};
+				});
+				
+				$(document).on('scrollstart scrolling scrolled', function(ev) {
+					console.log('document:' + ev.type);
+				});
+				
+				$(window).on('resizestart resizing resiezed', function(ev){
+					console.log('window:' + ev.type);
+				});
+				
+				$(document).on('swipe swipeleft swiperight swipeup swipedown swiping', function(ev){
+					console.log('window:' + ev.type);
+				});
+				
+			},
 			
-		var test = [
-			'var1','func1()','arr1[0]','arr1[1]','arr1[2]',
-			'var2.var1', 'var2.func1()', 'var2.arr1[0]', 'var2.arr1[1]','var2.arr1[2]',
-			'var2.var3.var1', 'var2.var3.func1()', 'var2.var3.arr1[0]', 'var2.var3.arr1[1]','var2.var3.arr1[2]',
-			'func2().var1', 'func2().func1()', 'func2().arr1[0]', 'func2().arr1[2]', 'func2().arr1[2]', 
-			'arr2[0].var1', 'arr2[0].func1()', 'arr2[0].arr1[0]', 'arr2[0].arr1[1]', 'arr2[0].arr1[2]', 
-			'arr2[1].var1', 'arr2[1].func1()', 'arr2[1].arr1[0]', 'arr2[1].arr1[1]', 'arr2[1].arr1[2]'
-		];
-		
-		var str;
-		while( str = test.shift() ){
-			var res = $.resolve(a, str);
-			msg(('a.'+str == res)+ ' : a.' + str + ' / ' + res);
-			$.resolve(a, str, 'modified');
-			msg('modified:'+$.resolve(a, str));
-		}
-		
-		msg($.toJSON(a));
-		
-	}
-	
-}
-
-
+			'console' : function(){
+				console.log(1, 'str', {'obj':'val'});
+				console.error('console.error()', location.href, 73);
+				new Error('new Error()');
+				// throw 'test error'
+				// throw new Error('test throw new Error()');
+			},
+			
+			'typeOf' : function() {
+				var vars = {
+					'num' : 1,
+					'str' : 'str',
+					'bool' : true,
+					'func' : function() {},
+					'arr' : [ 1, 2, 3 ],
+					'obj' : {
+						'a' : 1
+					},
+					'objNum' : new Number(0),
+					'objStr' : new String('obStr'),
+					'objBool' : new Boolean(false),
+					'objArray' : new Array(1, 2, 3),
+					'objObj' : new Object({
+						'b' : 'str'
+					}),
+					'objFunc' : new Function(),
+					'objDate' : new Date(),
+					'objRegExp' : new RegExp(),
+					'null' : null,
+					'undefined' : undefined
+				};
+				var typeofs = [];
+				for ( var k in vars) {
+					typeofs.push(k + ':' + $.typeOf(vars[k]));
+				}
+				msg(typeofs.join("\n"));
+			},
+			
+			'closure' : function() {
+				var bound_function =
+					$.closure([ 'ba1', 'ba2' ], null, function(_bind_arg1, _bind_arg2, arg1, arg2, arg3) {
+						msg([ '_bind_arg1:' + _bind_arg1, '_bind_arg2:' + _bind_arg2, 'arg1:' + arg1, 'arg2:' + arg2,
+							'arg3:' + arg3 ].join('\n'));
+					});
+				bound_function('a1', 'a2', 'a3');
+			},
+			
+			'doLaterWith' : function() {
+				msg('start');
+				var start = new Date().getTime();
+				function delayFunc1(a) {
+					return "doLaterWith:" + a + " - delayed " + (new Date().getTime() - start) + 'ms';
+				}
+				$.doLaterWith([ '0ms' ], null, delayFunc1).then(function(res) {
+					msg(res);
+				});
+				$.doLaterWith([ '5000ms' ], null, delayFunc1, 5000).then(function(res) {
+					msg(res);
+				});
+			},
+			
+			'doLater' : function() {
+				msg('start');
+				var start = new Date().getTime();
+				function delayFunc2() {
+					return "doLater - delayed " + (new Date().getTime() - start) + 'ms';
+				}
+				$.doLater(delayFunc2).then(function(res) {
+					msg(res);
+				});
+				$.doLater(delayFunc2, 5000).then(function(res) {
+					msg(res);
+				});
+			},
+			
+			'parseISO8601' : function() {
+				var strs =
+					[ '1970-01-01T00:00:00.000Z', '1970-01-01T00:00:00.000+0000', '1970-01-01T00:00:00.000+1200',
+						'2000-12-31T12:12:12Z', ];
+				for ( var k in strs) {
+					var v = strs[k];
+					var d = $.parseISO8601(v);
+					msg(v + ' -> ' + d.toGMTString() + '(' + d.toLocaleString() + ')');
+				}
+			},
+			
+			'dateformat' : function() {
+				var formats =
+				/*
+				[ 'Y-m-d H:i:s.u [e\\sc\\ape\\d]',
+					'\'y/n/j G:i:s.u = h:i A = g:i a' ];*/
+				[ 'yyyy-MM-dd HH:mm:ss.SSS', "''yy/M/d 'at' H:mm = K:mm a" ];
+				for ( var i = 0, l = formats.length; i < l; i++) {
+					msg($.dateformat(new Date(1), formats[i]));
+				}
+				for ( var i = 0, l = formats.length; i < l; i++) {
+					msg($.dateformat(new Date(60 * 60 * 12 * 1000 + 12), formats[i]));
+				}
+				for ( var i = 0, l = formats.length; i < l; i++) {
+					msg($.dateformat(new Date(), formats[i]));
+				}
+			},
+			
+			'relativeTime' : function() {
+				var now = new Date();
+				var deltas =
+					[ 0, 5, 10, 30, 50, 60, 70, 60 * 60 - 10, 60 * 60, 60 * 60 * 24 - 10, 60 * 60 * 24,
+						60 * 60 * 24 + 10, 60 * 60 * 24 * 2 - 10, 60 * 60 * 24 * 2, 60 * 60 * 24 * 2 + 10,
+						60 * 60 * 24 * 30 - 10, 60 * 60 * 24 * 30 + 10, 60 * 60 * 24 * 60 ];
+				for ( var i = 0, l = deltas.length; i < l; i++) {
+					var date = new Date(now.getTime() + deltas[i] * 1000);
+					msg($.dateformat(date, 'yyyy-MM-dd HH:mm:ss') + " / "
+						+ $.relativeTime(date, 'yyyy-MM-dd HH:mm:ss', now));
+				}
+				for ( var i = 0, l = deltas.length; i < l; i++) {
+					var date = new Date(now.getTime() - deltas[i] * 1000);
+					msg($.dateformat(date, 'yyyy-MM-dd HH:mm:ss') + " / "
+						+ $.relativeTime(date, 'yyyy-MM-dd HH:mm:ss', now));
+				}
+			},
+			
+			'numformat' : function() {
+				var nums = [ 1, 12, 123, 1234, 12345, 123456, 123456789, 1234.1, 1234.123, 1234.1234 ];
+				var str =
+					[ '1', '12', '123', '1,234', '12,345', '123,456', '123,456,789', '1,234.1', '1,234.123',
+						'1,234.1234' ];
+				for ( var i = 0, l = nums.length; i < l; i++) {
+					var v = $.numformat.comma3(nums[i]);
+					msg('comma3(x):' + (str[i] == v) + ':' + v + '/' + str[i]);
+					var v = $.numformat.comma3(-nums[i]);
+					msg('comma3(x):' + (('-' + str[i]) == v) + ':' + v + '/-' + str[i]);
+				}
+				var nums = [ 1, 1.4999, 1.5, 14.99, 15.00, 0.1499 ];
+				var str = [ '1', '1', '2', '15', '15', '0' ];
+				for ( var i = 0, l = nums.length; i < l; i++) {
+					var v = $.numformat.round(nums[i]);
+					msg('round(' + nums[i] + '):' + (str[i] == v) + ':' + v + '/' + str[i]);
+				}
+				var nums = [ 1, 1.4, 1.449, 1.45 ];
+				var str = [ '1.0', '1.4', '1.4', '1.5' ];
+				for ( var i = 0, l = nums.length; i < l; i++) {
+					var v = $.numformat.round(nums[i], -1);
+					msg('round(' + nums[i] + ',-1):' + (str[i] == v) + ':' + v + '/' + str[i]);
+				}
+				var nums = [ 0.1, 0.14, 0.14449, 0.14451 ];
+				var str = [ '0.100', '0.140', '0.144', '0.145' ];
+				for ( var i = 0, l = nums.length; i < l; i++) {
+					var v = $.numformat.round(nums[i], -3);
+					msg('round(' + nums[i] + ',-3):' + (str[i] == v) + ':' + v + '/' + str[i]);
+				}
+				var nums = [ 10, 14, 15, 144, 145 ];
+				var str = [ '10', '10', '20', '140', '150' ];
+				for ( var i = 0, l = nums.length; i < l; i++) {
+					var v = $.numformat.round(nums[i], 1);
+					msg('round(' + nums[i] + ',1):' + (str[i] == v) + ':' + v + '/' + str[i]);
+				}
+				var nums = [ 10, 512, 1024, 4096, 1023 ];
+				var str = [ '0.01', '0.5', '1', '4', '1' ];
+				for ( var i = 0, l = nums.length; i < l; i++) {
+					var v = $.numformat.kilo(nums[i]);
+					msg('kilo(' + nums[i] + '):' + (str[i] == v) + ':' + v + '/' + str[i]);
+				}
+				
+			},
+			
+			'resolve' : function() {
+				var a = {
+					var1 : 'a.var1',
+					arr1 : [ 'a.arr1[0]', 'a.arr1[1]', 'a.arr1[2]' ],
+					func1 : function() {
+						return 'a.func1()';
+					},
+					var2 : {
+						var1 : 'a.var2.var1',
+						arr1 : [ 'a.var2.arr1[0]', 'a.var2.arr1[1]', 'a.var2.arr1[2]' ],
+						func1 : function() {
+							return 'a.var2.func1()';
+						},
+						var3 : {
+							var1 : 'a.var2.var3.var1',
+							arr1 : [ 'a.var2.var3.arr1[0]', 'a.var2.var3.arr1[1]', 'a.var2.var3.arr1[2]' ],
+							func1 : function() {
+								return 'a.var2.var3.func1()';
+							}
+						}
+					},
+					func2 : function() {
+						return {
+							var1 : 'a.func2().var1',
+							arr1 : [ 'a.func2().arr1[0]', 'a.func2().arr1[1]', 'a.func2().arr1[2]' ],
+							func1 : function() {
+								return 'a.func2().func1()';
+							}
+						}
+					},
+					arr2 : [ {
+						var1 : 'a.arr2[0].var1',
+						arr1 : [ 'a.arr2[0].arr1[0]', 'a.arr2[0].arr1[1]', 'a.arr2[0].arr1[2]' ],
+						func1 : function() {
+							return 'a.arr2[0].func1()';
+						}
+					}, {
+						var1 : 'a.arr2[1].var1',
+						arr1 : [ 'a.arr2[1].arr1[0]', 'a.arr2[1].arr1[1]', 'a.arr2[1].arr1[2]' ],
+						func1 : function() {
+							return 'a.arr2[1].func1()';
+						}
+					} ]
+				};
+				
+				var test =
+					[ 'var1', 'func1()', 'arr1[0]', 'arr1[1]', 'arr1[2]', 'var2.var1', 'var2.func1()', 'var2.arr1[0]',
+						'var2.arr1[1]', 'var2.arr1[2]', 'var2.var3.var1', 'var2.var3.func1()', 'var2.var3.arr1[0]',
+						'var2.var3.arr1[1]', 'var2.var3.arr1[2]', 'func2().var1', 'func2().func1()', 'func2().arr1[0]',
+						'func2().arr1[2]', 'func2().arr1[2]', 'arr2[0].var1', 'arr2[0].func1()', 'arr2[0].arr1[0]',
+						'arr2[0].arr1[1]', 'arr2[0].arr1[2]', 'arr2[1].var1', 'arr2[1].func1()', 'arr2[1].arr1[0]',
+						'arr2[1].arr1[1]', 'arr2[1].arr1[2]' ];
+				
+				var str;
+				while (str = test.shift()) {
+					var res = $.resolve(a, str);
+					msg(('a.' + str == res) + ' : a.' + str + ' / ' + res);
+					$.resolve(a, str, 'modified');
+					msg('modified:' + $.resolve(a, str));
+				}
+				
+				msg($.toJSON(a));
+				
+			},
+			
+			outerHTML : function() {
+				msg('outerHTML : ' + $('#test').outerHTML());
+				$('#test').outerHTML($('<p style="background:#fcc;">'))
+				msg('outerHTML : ' + $("#outerhtml").outerHTML());
+			},
+			
+			mask : function() {
+				/*
+				$(".mask-target").queue(function(){
+					//alert('mask');
+					$(this).mask();
+					$(this).dequeue();
+				}).delay(1000).queue(function(){
+					//alert('mask hide');
+					$(this).mask('hide');
+					$(this).dequeue();
+				}).delay(1000).queue(function(){
+					//alert('mask2');
+					$(this).mask({background:'blue'});
+					$(this).dequeue();
+				}).delay(1000).queue(function(){
+					//alert('mask2 hide');
+					$(this).mask('hide');
+					$(this).dequeue();
+				});
+				*/
+				
+			},
+			
+			naturalSize : function(){
+				$(document).ready(function(){
+					$("#naturalSize img").each(function(){
+						var $img = $(this);
+						msg('ready:' + new RectInfo($img.naturalSize()));
+						$(this).imagesLoaded().then(function(){
+							msg('each imagesLoaded:' + $img.attr('src') + ':' + new RectInfo($img.naturalSize()));
+						});
+					});
+				});
+				$("#naturalSize").imagesLoaded(function(){
+					$("#naturalSize img").each(function(){
+						var $img = $(this);
+						msg('imagesLoaded:' + $img.attr('src') + ':' + new RectInfo($img.naturalSize()));
+					});
+				});
+			},
+			
+			poll : function(){
+				var toggle = false;
+				setTimeout(function(){
+					msg('polling : toggle = true');
+					toggle = true;
+				}, 5000);
+				msg('polling 5sec while toggle = false');
+				$.poll(function(){
+					msg('polling waiting (1) : ' + (toggle == false));
+					return toggle == false;
+				}).always(function(res){
+					msg('polling 5sec done');
+				});
+				$.poll(function(){
+					msg('polling waiting (2) : ' + (toggle == false));
+					return toggle == false;
+				}, 2).always(function(res){
+					msg('polling 5sec / timeout done :' + res);
+				});
+			}
+			
+		};
 </script>
 
 <style>
-
 div.pre {
-	white-space:pre;
-	border:4px solid #ccc;
-	overflow:auto;
-	width:auto;
-}
-div.error {
-	border-color:#f88;
-	background-color:#fee;
+	white-space: pre;
+	border: 4px solid #ccc;
+	overflow: auto;
+	width: auto;
 }
 
+div.error {
+	border-color: #f88;
+	background-color: #fee;
+}
+
+label.checked {
+	background:#f88;
+}
+textarea#console {
+	position:fixed;
+	right:0;
+	top:0;
+	width: 50%;
+	height: 20em;
+}
 </style>
 </head>
 <body>
+	<textarea id="console"></textarea>
+	<div id="outerhtml">
 
-<div id="msg"></div>
-<div id="err"></div>
+		<div id="test" attr="attr">
+			aaaa<span>bbbbb</span>ccccc
+		</div>
+
+	</div>
+	<style>
+		.mask-relative {
+			position: relative;
+			top:10px; left: 10px;
+			margin:10px;
+			padding: 5px;
+		}
+		.mask-absolute {
+			position: absolute;
+			top:10px; left: 10px;
+			margin:10px auto;
+			padding: 5px;
+			background: #ccc;
+			border: 5px dotted white;
+			-webkit-border-radius: 5px;
+			border-radius: 5px;
+		}
+		.mask-fixed {
+			position: fixed;
+			top:10px; left: 10px;
+			padding: 5px;
+			margin:10px;
+			background: #ccc;
+			border: 5px dotted white;
+			-webkit-border-radius: 5px;
+			border-radius: 5px;
+		}
+		.hidden { visibility: hidden; }
+		.displaynone { display: none; }
+		.mask-target { background: #aca; }
+	</style>
+	<div id="masktests" style="border:1px solid #888; padding: 15px;">
+		<input type="button" onclick="$('.mask-target').mask({background:'red',opacity:'0.5'})" value="Mask">
+		<input type="button" onclick="$('.mask-target').mask('hide')" value="Unmask">
+		<input type="button" onclick="$('.mask-target').css('margin-left','100px').css('top', '10px')" value="Move">
+		<input type="button" onclick="$('.mask-target').css('height','100px')" value="Resize">
+		<input type="button" onclick="$('.mask-target').css({'height':'','margin-left':'', top:''})" value="Clear">
+		<div class="mask-target">Block Mask Target</div>
+		<div>
+			hogehogehoge <span class="mask-target">Span Mask Target</span> fugafugafuga
+			<a onclick="alert('clicked')" href="#clicked" class="mask-target">Link Mask Target</a>
+		</div>
+		<div class="mask-target mask-relative">Relative Mask Target</div>
+		<div style="position:relative; width:300px; height: 100px; background:#888;">
+			<div class="mask-target mask-absolute">
+				Absolute Mask Target
+			</div>
+		</div>
+		<div class="mask-target mask-fixed">
+			Fixed Mask Target
+		</div>
+	</div>
+
+	<form id="radios1">
+		<label><input type="radio" name="rd" value="val1"  checked> Radio1</label>
+		<label><input type="radio" name="rd" value="val2"> Radio2</label>
+		<label><input type="radio" name="rd" value="val3"> Radio3</label>
+	</form>
+	<form id="radios2">
+		<input type="radio" id="rd1" name="rd" value="val1" checked> <label for="rd1">Radio1</label>
+		<input type="radio" id="rd2" name="rd" value="val2"> <label for="rd2">Radio2</label>
+		<input type="radio" id="rd3" name="rd" value="val3"> <label for="rd3">Radio2</label>
+	</form>
+	<form id="checkboxes1">
+		<label><input type="checkbox" name="cb" value="val1" checked> Checkbox1</label>
+		<label><input type="checkbox" name="cb" value="val2"> Checkbox2</label>
+		<label><input type="checkbox" name="cb" value="val3"> Checkbox3</label>
+	</form>
+	<form id="checkboxes2">
+		<input type="checkbox" id="cb1" name="cb" value="val1" checked> <label for="cb1">Checkbox1</label>
+		<input type="checkbox" id="cb2" name="cb" value="val2"> <label for="cb2">Checkbox2</label>
+		<input type="checkbox" id="cb3" name="cb" value="val3"> <label for="cb3">Checkbox3</label>
+	</form>
+
+	<style>
+		img.img-css1 { width: 100px; height:100px; }
+		img.img-css2 { width:10%; height:auto; }
+	</style>
+	<div id="naturalSize">
+		<img class="img-tag"   src="http://dummyimage.com/640x480&text=tag" width="100" height="100">
+		<img class="img-style" src="http://dummyimage.com/640x480&text=style" style="width:100px; height:100px;">
+		<img class="img-css1"  src="http://dummyimage.com/640x480&text=css1">
+		<img class="img-css2"  src="http://dummyimage.com/640x480&text=css2">
+		<img src="http://www.example.com/404.jpg">
+		<img class="img-css1 hidden"      src="http://dummyimage.com/640x480&text=hidden">
+		<img class="img-css1 displaynone" src="http://dummyimage.com/640x480&text=displaynone">
+		<span class="hidden"><img class="img-css1" src="http://dummyimage.com/640x480&text=hiddenchild"></span>
+		<span class="displaynone"><img class="img-css1" src="http://dummyimage.com/640x480&text=displaynonechild"></span>
+	</div>
+	<input type="button" onclick="_notexist++" value="generate error">
+	<input type="button" onclick="new Error()" value="new Error()">
+	<input type="button" onclick="throw 'error thrown'" value="throw">
+
+
+	<div id="watch-target">Original Watch Target</div>
+	<input type="button" onclick="$('#watch-target').text('Watch Target : ' + new Date())" value="Change Watch Target">
+	<input type="button" onclick="$('#watch-target').unwatch('text')" value="Unwatch">
+	
+	<div id="scrollintoview-target-middle" style="position:relative; height: 100px; background: #ccc">
+		scrollIntoView Target
+	</div>
+	<input type="button" onclick="$('#scrollintoview-target-bottom').scrollIntoView()" value="scrollIntoView:bottom">
+	
+	<div id="exectest">ExecTest Place</div>
+	
+	
+	<style>
+		#fontsize { font-size: 16px; }
+		#fontsize-1 { font-size:1.5em; }
+		#fontsize-2 { font-size:150%; }
+		#fontsize-3 { font-size:24px; }
+	</style>
+	<div id="fontsize">
+		<div id="fontsize-1">1.5em</div>
+		<div id="fontsize-2">150%</div>
+		<div id="fontsize-3">24px</div>
+	</div>
+	
+	<style>
+		#fontsize-adjusts > * {
+			position: relative;
+			font-size: 32px;
+		}
+		#fontsize-adjusts > * > * {
+			border: 1px solid blue;
+			/* padding: 0.5em; */
+			padding: 20px;
+		}
+	</style>
+	<div id="fontsize-adjusts">
+		<div style="width:200px;">
+			<div>longlonglonglong long long long long</div>
+			<div>longlonglonglong<br> long long long long</div>
+		</div>
+		<div style="width:400px;">
+			<div>longlonglonglong long long long long</div>
+			<div>longlonglonglong<br> long long long long</div>
+		</div>
+	</div>
+	<input type="button" onclick="adjustFontSizeNoWrap()" value="adjustFontSizeNoWrap()">
+	<script>
+		$(function(){
+			$('#fontsize > *').each(function(){
+				var $this = $(this);
+				$this.append($('<span>').text(' - computed:' + $this.getFontSize() + 'px'));
+			});
+		});
+		function adjustFontSizeNoWrap(){
+			$('#fontsize-adjusts > * > *').adjustFontSizeNoWrap();
+		}
+	</script>
+	
+	<div id="msg"></div>
+	<div id="err"></div>
+
+	<div id="scrollintoview-target-bottom" style="position:relative; height: 100px; background: #ccc">
+		scrollIntoView Target
+	</div>
+	<input type="button" onclick="$('#scrollintoview-target-middle').scrollIntoView()" value="scrollIntoView:middle">
+
 
 </body>
 </html>

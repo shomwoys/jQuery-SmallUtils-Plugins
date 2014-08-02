@@ -57,8 +57,10 @@ ex)
 
 ex)
 
-	$.dateformat(new Date(0), 'yyyy/MM/dd HH:mm');
+	$.dateformat(new Date(0), 'Y/m/d H:i');
 	-> "1970/01/01 00:00" (localtime)
+
+supported only Y,y, m,n, d,j, H, G, i,s,u, h,g, a,A
 
 ### Number utils
 
@@ -246,7 +248,7 @@ ex)
         <div data-tmpl="array">
             <span data-tmpl="array:data>array[x].data placeholder</span>
         </div>
-        <div data-tmpl="now">formatted as yyyy/MM/dd HH:mm:ss</div>
+        <div data-tmpl="now">formatted as Y-m-d H:i:s</div>
         <div data-tmpl="html">html placeholder</div>
     </target>
 
